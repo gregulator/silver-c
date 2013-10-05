@@ -1,4 +1,1 @@
-./autogen.sh
-cd build
-../configure
-make
+make -C build
