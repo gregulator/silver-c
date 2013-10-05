@@ -1,4 +1,4 @@
-#include <xe_dynarray.h>
+#include <ag_dynarray.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -8,7 +8,7 @@ typedef struct
     unsigned actualNumItems;
     unsigned floorHint;
     unsigned elemSize;
-} DynArrayHeader;
+} AgDynArrayHeader;
 
 unsigned _NextPowerOfTwo(unsigned x)
 {
@@ -34,84 +34,84 @@ unsigned _PrevPowerOfTwo(unsigned x)
 }
 
 
-#define HEADER_SIZE (sizeof(DynArrayHeader))
+#define HEADER_SIZE (sizeof(AgDynArrayHeader))
 
 #define GET_ARRAY(pArrayHeader) \
-    ((DynArrayHandle *)&(((char *)pArrayHeader)[+HEADER_SIZE]))
+    ((AgDynArrayHandle *)&(((char *)pArrayHeader)[+HEADER_SIZE]))
 
 #define GET_HEADER(hDynArray) \
-    ((DynArrayHeader *)&(((char *)hDynArray)[-HEADER_SIZE]))
+    ((AgDynArrayHeader *)&(((char *)hDynArray)[-HEADER_SIZE]))
 
-DynArrayHandle DynArray_Create(unsigned elemSize, unsigned startNumItems, unsigned floorHint)
+AgDynArrayHandle AgDynArray_Create(unsigned elemSize, unsigned startNumItems, unsigned floorHint)
 {
-    DynArrayHeader *full;
+    AgDynArrayHeader *full;
     unsigned actualNumItems;
 
     actualNumItems = _NextPowerOfTwo(startNumItems);
-    full = malloc(elemSize*actualNumItems + sizeof(DynArrayHeader));
+    full = malloc(elemSize*actualNumItems + sizeof(AgDynArrayHeader));
     full->numItems = startNumItems;
     full->actualNumItems = actualNumItems;
     full->elemSize = elemSize;
     return GET_ARRAY(full);
 }
 
-void DynArray_Free(DynArrayHandle hDynArray)
+void AgDynArray_Free(AgDynArrayHandle hDynArray)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
     free(pHeader);
 }
 
-unsigned DynArray_NumItems(DynArrayHandle hDynArray)
+unsigned AgDynArray_NumItems(AgDynArrayHandle hDynArray)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
     return pHeader->numItems;
 }
 
-DynArrayHandle DynArray_GrowByOne(DynArrayHandle hDynArray)
+AgDynArrayHandle AgDynArray_GrowByOne(AgDynArrayHandle hDynArray)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
 
     pHeader->numItems++;
     if (pHeader->numItems > pHeader->actualNumItems)
     {
         pHeader->actualNumItems *= 2;
-        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(DynArrayHeader));
+        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(AgDynArrayHeader));
     }
 
     return GET_ARRAY(pHeader);
 }
 
-DynArrayHandle DynArray_ShrinkByOne(DynArrayHandle hDynArray)
+AgDynArrayHandle AgDynArray_ShrinkByOne(AgDynArrayHandle hDynArray)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
 
     pHeader->numItems--;
     if (pHeader->numItems < pHeader->actualNumItems/4)
     {
         pHeader->actualNumItems /= 2;
-        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->numItems + sizeof(DynArrayHeader));
+        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->numItems + sizeof(AgDynArrayHeader));
     }
 
     return GET_ARRAY(pHeader);
 }
 
-DynArrayHandle DynArray_Grow(DynArrayHandle hDynArray, unsigned numItemsToAdd)
+AgDynArrayHandle AgDynArray_Grow(AgDynArrayHandle hDynArray, unsigned numItemsToAdd)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
 
     pHeader->numItems += numItemsToAdd;
     if (pHeader->numItems > pHeader->actualNumItems)
     {
         pHeader->actualNumItems = _NextPowerOfTwo(pHeader->numItems);
-        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(DynArrayHeader));
+        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(AgDynArrayHeader));
     }
 
     return GET_ARRAY(pHeader);
 }
 
-DynArrayHandle DynArray_Shrink(DynArrayHandle hDynArray, unsigned numItemsToRemove)
+AgDynArrayHandle AgDynArray_Shrink(AgDynArrayHandle hDynArray, unsigned numItemsToRemove)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
 
     assert(pHeader->numItems >= numItemsToRemove);
 
@@ -120,26 +120,26 @@ DynArrayHandle DynArray_Shrink(DynArrayHandle hDynArray, unsigned numItemsToRemo
     {
         /* TODO: handle floorHint */
         pHeader->actualNumItems = _NextPowerOfTwo(pHeader->numItems) * 2;
-        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(DynArrayHeader));
+        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(AgDynArrayHeader));
     }
 
     return GET_ARRAY(pHeader);
 }
 
-DynArrayHandle DynArray_Resize(DynArrayHandle hDynArray, unsigned numItems)
+AgDynArrayHandle AgDynArray_Resize(AgDynArrayHandle hDynArray, unsigned numItems)
 {
-    DynArrayHeader *pHeader = GET_HEADER(hDynArray);
+    AgDynArrayHeader *pHeader = GET_HEADER(hDynArray);
 
     pHeader->numItems = numItems;
     if (numItems > pHeader->actualNumItems)
     {
         pHeader->actualNumItems = _NextPowerOfTwo(pHeader->numItems);
-        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(DynArrayHeader));
+        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(AgDynArrayHeader));
     }
     else if (numItems < pHeader->actualNumItems / 4)
     {
         pHeader->actualNumItems = _NextPowerOfTwo(pHeader->numItems) * 2;
-        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(DynArrayHeader));
+        pHeader = realloc(pHeader, pHeader->elemSize*pHeader->actualNumItems + sizeof(AgDynArrayHeader));
     }
 
     return GET_ARRAY(pHeader);
