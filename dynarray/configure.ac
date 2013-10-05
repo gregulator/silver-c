@@ -1,6 +1,6 @@
-AC_INIT(libxe, 1.0, greg@toruslabs.com)
+AC_INIT(libag, 1.0, greg@toruslabs.com)
 AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_SRCDIR(src/dynarray.c)
+AC_CONFIG_SRCDIR(src/ag_dynarray.c)
 
 AM_INIT_AUTOMAKE
 LT_INIT
