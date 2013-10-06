@@ -4,6 +4,8 @@ AgDynArray - The awesomest dynamic array implementation
 AgDynArray implements dynamically-sized arrays in C that have the speed and
 ease-of-use of conventional C arrays.
 
+See full documention in the header file [here](src/ag_dynarray.h).
+
 **OVERVIEW**
 
 The AgDynArray module provides a mechanism for creating dynamic arrays of
@@ -51,6 +53,8 @@ The dynamic array's current size is obtained by calling:
 
     AgDynArray_NumItems(pArray)
 
+This returns the number of elements in the array, not the number of bytes storage.
+
 To grow the array, call:
 
     AG_DYNARRAY_GROW_BY_ONE(pArray);
@@ -61,7 +65,7 @@ To grow the array, call:
 
     or
 
-    AG_DYNARRAY_APPEND(pArray, v);  // append value v (growing by 1)
+    AG_DYNARRAY_APPEND(pArray, v);  // append value v (growing by 1 element)
 
 **IMPORTANT: These routines are macros because they may change the value of
 pArray if the underlying realloc call moves the memory block.  Because the
@@ -90,4 +94,4 @@ To shrink the array, call:
 
 You can also resize the array to a specific size using:
 
-    AG_DYNARRAY_RESIZE(pArray, n);   // set array size to n
+    AG_DYNARRAY_RESIZE(pArray, n);   // set array size to n elements
