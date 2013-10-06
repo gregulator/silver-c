@@ -5,9 +5,9 @@ Collection of libraries that make C more powerful and easier to use without sacr
 
 **MODULES** 
 
-`ag_dynarray` - Dynamic arrays that look like native C array.
-
-_More coming soon..._
+ - `ag_dynarray` - Dynamic arrays that look like native C array.
+ - `ag_list` - Fast, generic linked list structures.
+ - _More coming soon..._
 
 **STATUS**
 

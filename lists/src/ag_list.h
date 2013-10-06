@@ -185,8 +185,6 @@ void AgList_InsertNext_Internal(AgListHandle hList, AgListNodeHandle hNode, AgLi
 /*
  *  AgList_GetNext -- Get the node that comes after another node.
  *
- *      <hList> is the list to <hNode> belongs to.
- *
  *      <hNode> specifies the node to get the next node for.  <hNode> must be a
  *          member of a list (non-orphaned).  <hNode> may be a pointer to any
  *          structure that begins with a AgListNode element.
@@ -199,9 +197,9 @@ void AgList_InsertNext_Internal(AgListHandle hList, AgListNodeHandle hNode, AgLi
  *
  *      This is macro that automatically casts <hNode> to AgListNodeHandle.
  */
-#define AgList_GetNext(hList, hNode) \
-    AgList_GetNext_Internal(hList, (AgListNodeHandle)hNode)
-AgListNodeHandle AgList_GetNext_Internal(AgListHandle hList, AgListNodeHandle hNode);
+#define AgList_GetNext(hNode) \
+    AgList_GetNext_Internal((AgListNodeHandle)hNode)
+AgListNodeHandle AgList_GetNext_Internal(AgListNodeHandle hNode);
 
 /*
  *  AgList_PopNext -- Remove the node that comes after another node (orphaning

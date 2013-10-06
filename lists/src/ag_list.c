@@ -109,11 +109,10 @@ AgListNodeHandle AgList_PopNext_Internal(AgListHandle hList, AgListNodeHandle hN
     return tmp;
 }
 
-AgListNodeHandle AgList_GetNext_Internal(AgListHandle hList, AgListNodeHandle hNode)
+AgListNodeHandle AgList_GetNext_Internal(AgListNodeHandle hNode)
 {
 #if AG_DEBUG
     assert(hNode->_dbg_hlist);
-    assert(hNode->_dbg_hlist == hList);
 #endif
     return hNode->_next;
 }
