@@ -23,6 +23,14 @@ specifying the minimum amount of memory to keep allocated (if unsure, just use
 0).
 
 A dynamic array can be created from any data type:
+    
+    typedef struct 
+    {
+        float x, y, z;
+        float radius;
+    } Sphere;
+
+    ...
 
     Sphere *pSpheres = (Sphere *)AgDynArray_Create(sizeof(Sphere), 1, 0);
 
@@ -33,7 +41,7 @@ The `pArray` can be indexed just like a normal array:
 
 Call `AgDynArray_Free` to free the dynamic array:
 
-    AgDynArray_Free(pArray)
+    AgDynArray_Free(pArray);
 
 **RESIZING OPERATIONS**
 
