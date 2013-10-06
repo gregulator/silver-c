@@ -97,7 +97,6 @@ static void _AutoResize(AgHashMapHandle hMap)
     }
 }
 
-
 AgHashMapHandle AgHashMap_Create(unsigned numItemsHint)
 {
     AgHashMapHandle hNew;
@@ -173,8 +172,7 @@ void *
     AgHashMapNodeHeader *pNode = hMap->buckets[hashval];
     while (pNode)
     {
-        if (_KeysMatch(
-                    pNode->keySize, _NODE_KEY(pNode), keySize, key))
+        if (_KeysMatch( pNode->keySize, _NODE_KEY(pNode), keySize, key))
         {
             pNode->value = value;
         }
