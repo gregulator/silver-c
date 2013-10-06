@@ -1,7 +1,7 @@
 Silver-c (aka, "libag")
 =====
 
-Collection of libraries that make C easier to use without sacrificing performance.
+Collection of libraries that make C more powerful and easier to use without sacrificing performance.
 
 **MODULES** 
 
