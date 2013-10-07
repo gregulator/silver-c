@@ -1,5 +1,13 @@
 #ifndef ZLIST_INCLUDED
 #define ZLIST_INCLUDED
+/** @file zlist.h
+ *  @brief ZLIST - Linked lists
+ */
+/**
+ * @mainpage ZLIST documentation
+ * @section zlist_overview Overview
+ * Zlists are awesome.
+ */
 
 #include <stdlib.h>
 

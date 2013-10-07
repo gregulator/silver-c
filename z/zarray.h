@@ -1,8 +1,47 @@
+/*
+ *  ZARRAY -- Dynamic arrays
+ *
+ *  Author: Gregory Prsiament (greg@toruslabs.com)
+ *
+ *  ===========================================================================
+ *  Creative Commons CC0 1.0 Universal - Public Domain 
+ *
+ *  To the extent possible under law, Gregory Prisament has waived all
+ *  copyright and related or neighboring rights to ZARRAY. This work is
+ *  published from: United States. 
+ *
+ *  For details please refer to either:
+ *      - http://creativecommons.org/publicdomain/zero/1.0/legalcode
+ *      - The LICENSE file in this directory, if present.
+ *  ===========================================================================
+ */
 #ifndef ZARRAY_INCLUDED
 #define ZARRAY_INCLUDED
 
 #include <stdlib.h>
 
+/**
+ * @page Debug features
+ *  @brief Disable debug features
+ *
+ *  By default, ZARRAY routines make several assertions and other runtime
+ *  checks to help you quickly catch bugs if you're use ZARRAY improperly.
+ *
+ *  These runtime checks come with a small amount of performance and memory
+ *  overhead.  If you're trying to maximize performance, and are confident that
+ *  your software is using ZARRAY properly, you may wish to disable debug
+ *  features for release builds.
+ *
+ *  You can disable the checks when compiling, for example:
+ *
+ *      gcc -DZ4C_NO_DEBUG mysource.c
+ *
+ *  Alternatively, you can define it in your source files like so:
+ *
+ *      #define DZ4C_NO_DEBUG
+ *      #include <zarray.h>
+ *      ...
+ */
 #ifndef Z4C_NO_DEBUG
 #include <assert.h>
 #include <stdio.h>
@@ -86,6 +125,23 @@ static unsigned _ZArray_NextPowerOfTwo(unsigned x)
             + sizeof(_ZArrayHeader)); \
     (zarray) = _ZARRAY_ARRAY(zarray); \
 
+/**
+ * Allocate a new dynamic array, returning a pointer to the underlying
+ * conventional array.
+ *
+ * @param elemSize 
+ *      Size (in bytes) of each array element.
+ *
+ * @param startNumItems 
+ *      Initial number of (uninitialized) elements that the array contains.  It
+ *      is valid for <startNumItems> to be 0.
+ *
+ * @retval void*
+ *      Returns a ZArray that can be cast to the desired pointer data type, and
+ *      then indexed like a conventional array.
+ * @retval NULL 
+ *      Returns NULL if allocation failed.
+ */
 static ZArray ZARRAY_ALLOC(unsigned elemSize, unsigned startNumItems)
 {
     _ZArrayHeader *full;
@@ -106,14 +162,35 @@ static ZArray ZARRAY_ALLOC(unsigned elemSize, unsigned startNumItems)
     return _ZARRAY_ARRAY(full);
 }
 
+/**
+ * Free a dynamic array.
+ *
+ * @param zarray specifies the dynamic array to free.  This should be a
+ *          pointer returned by ZARRAY_ALLOC or the most recent resizing
+ *          operation (whichever happened most recently).  If NULL, this
+ *          routine does nothing.
+ *
+ * @retval None
+ */
 #define ZARRAY_FREE(zarray) \
     do { \
-        _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_FREE", zarray);  \
-        _ZARRAY_DEBUG_CLEAR_MAGIC(zarray); \
-        free(_ZARRAY_HEADER(zarray)); \
+        if (zarray) { \
+            _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_FREE", zarray);  \
+            _ZARRAY_DEBUG_CLEAR_MAGIC(zarray); \
+            free(_ZARRAY_HEADER(zarray)); \
+        } \
     } while (0);
 
 #if _ZARRAY_DEBUG
+/**
+ * Get the number of elements in a dynamic array.
+ *
+ * @param zarray specifies the dynamic array to check.  This must be a pointer
+ *          returned by ZARRAY_ALLOC or the most recent resizing operation
+ *          (whichever happened most recently).
+ *
+ * @retval unsigned number of elements in the array
+ */
 static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
 {
     _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_NUM_ITEMS", zarray);
@@ -124,9 +201,44 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
         (_ZARRAY_HEADER(zarray)->numItems)
 #endif
 
+/**
+ * Macro for accessing the last element of a dynamic array.
+ *
+ * This macro indexes the last element of the array.
+ *
+ * It expands to a modifieable lvalue that can be used in assignements.  For
+ * example:
+ *
+ *      ZARRAY_TAIL(myIntDynArray) = 43;
+ *
+ * @param zarray specifies the dynamic array to index.  This should be a
+ *          pointer returned by ZARRAY_ALLOC or the most recent resizing
+ *          operation (whichever happened most recently).  The array must
+ *          contain at least 1 element or your program will corrupt memory and
+ *          crash.
+ *
+ * @retval lvalue Modifiable l-value that is the last element in the array.
+ */
 #define ZARRAY_TAIL(zarray) \
     ((zarray)[ZARRAY_NUM_ITEMS(zarray) - 1])
 
+/**
+ * Increase the size of the array by one (1) and update the array pointer.
+ *
+ * One (1) new element is appended to the end unitialized.
+ *
+ * This macro automatically reasigns <zarray> to the new array address (and
+ * does not return anything).  The macro references <zarray> twice, so avoid
+ * complex expressions for that parameter.
+ *
+ * This routine is slightly more efficient than calling ZARRAY_GROW(zarray, 1).
+ *
+ * @param [in,out] zarray specifies the dynamic array to grow.  This should be a
+ *          pointer returned by ZARRAY_ALLOC or the most recent resizing
+ *          operation (whichever happened most recently).
+ *
+ * @return None
+ */
 #define ZARRAY_GROW_BY_ONE(zarray) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_GROW_BY_ONE", zarray);  \
@@ -138,6 +250,23 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
         } \
     } while (0)
 
+/**
+ * Decrease the size of the array by one (1) and update the array pointer.
+ *
+ * One (1) element is removed from the the end, and its value lost.
+ *
+ * This macro automatically reasigns <zarray> to the new array address (and
+ * does not return anything).  The macro references <zarray> twice, so avoid
+ * complex expressions for that parameter.
+ *
+ * This routine is slightly more efficient than calling ZARRAY_SHRINK(zarray, 1).
+ *
+ * @param [in,out] zarray specifies the dynamic array to grow.  This should be a
+ *          pointer returned by ZARRAY_ALLOC or the most recent resizing
+ *          operation (whichever happened most recently).
+ *
+ * @return None
+ */
 #define ZARRAY_SHRINK_BY_ONE(zarray) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_SHRINK_BY_ONE", zarray);  \
@@ -202,6 +331,17 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
         ZARRAY_TAIL(zarray) = (value); \
     } while (0)
 
+/*
+    Macro: ZARRAY_POP
+
+    Pops a thingy
+
+    Parameters:
+
+        zarray - Array to pop
+        dest - Destinationz
+
+ */
 #define ZARRAY_POP(zarray, dest) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_POP", zarray);  \
