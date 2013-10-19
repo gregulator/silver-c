@@ -88,6 +88,23 @@
 #define _ZARRAY_DEBUG_CLEAR_MAGIC(zarray) (void) 0
 #endif
 
+#ifdef __cplusplus
+template <typename T>
+struct _ZArrayStruct
+{
+#if _ZARRAY_DEBUG
+    char _magicid[4];
+#endif
+    unsigned numItems;
+    unsigned actualNumItems;
+    T * item;
+public:
+    void Realloc(void) {
+        item = (T *)realloc(item, actualNumItems * sizeof(T));
+    }
+};
+#define ZARRAY_STRUCT(typ) _ZArrayStruct<typ>
+#else   /* __cplusplus (ELSE) */
 #if _ZARRAY_DEBUG
 #define ZARRAY_STRUCT(typ) \
     struct \
@@ -106,6 +123,8 @@
         typ * item; \
     }
 #endif
+#endif /* __cplusplus (ENDIF) */
+
 
 #define ZARRAY(typ) ZARRAY_STRUCT(typ) *
 
@@ -121,9 +140,16 @@ static unsigned _ZArray_NextPowerOfTwo(unsigned x)
     return x + 1;
 }
 
+#ifdef __cplusplus
+#define _ZARRAY_RETURN_CAST(typ) (ZARRAY(typ))
+#define _ZARRAY_REALLOC(zarray) zarray->Realloc();
+#else
 #define _ZARRAY_REALLOC(zarray) \
     (zarray)->item = realloc(((zarray)->item), \
          sizeof(*((zarray)->item))*(zarray)->actualNumItems)
+
+#define _ZARRAY_RETURN_CAST(typ) 
+#endif
 
 /**
  * Allocate a new dynamic array, returning a pointer to the underlying
@@ -143,12 +169,14 @@ static unsigned _ZArray_NextPowerOfTwo(unsigned x)
  *      Returns NULL if allocation failed.
  */
 #define ZARRAY_ALLOC(typ, startNumItems) \
-    (ZARRAY(typ))_ZArray_AllocGeneric(sizeof(typ), startNumItems)
+    _ZARRAY_RETURN_CAST(typ) _ZArray_AllocGeneric(sizeof(typ), startNumItems)
+
 static void * _ZArray_AllocGeneric(unsigned elemSize, unsigned startNumItems)
 {
     unsigned actualNumItems;
-    ZARRAY(void) out;
-    out = malloc(sizeof(ZARRAY_STRUCT(void)));
+    typedef ZARRAY_STRUCT(void) _Struct;
+    _Struct * out;
+    out = (_Struct *)malloc(sizeof(*out));
     actualNumItems = _ZArray_NextPowerOfTwo(startNumItems+1);
     out->numItems = startNumItems;
     out->actualNumItems = actualNumItems;
@@ -197,11 +225,11 @@ static void * _ZArray_AllocGeneric(unsigned elemSize, unsigned startNumItems)
  *
  * @retval unsigned number of elements in the array
  */
-#define ZARRAY_NUM_ITEMS(zarray) _ZArray_NumItemsGeneric((ZARRAY(void))zarray)
-static unsigned _ZArray_NumItemsGeneric(ZARRAY(void) zarray)
+#define ZARRAY_NUM_ITEMS(zarray) _ZArray_NumItemsGeneric((void *)zarray)
+static unsigned _ZArray_NumItemsGeneric(void * zarray)
 {
-    _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_NUM_ITEMS", zarray);
-    return zarray->numItems;
+    _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_NUM_ITEMS", (ZARRAY(void))zarray);
+    return ((ZARRAY(void))(zarray))->numItems;
 }
 #else
 #define ZARRAY_NUM_ITEMS(zarray) \

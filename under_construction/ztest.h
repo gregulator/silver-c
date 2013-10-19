@@ -18,7 +18,7 @@ typedef struct _ZTestStruct * ZTest;
 static ZTest ZTEST_BEGIN(const char *testname) 
 {
     ZTest test;
-    test = calloc(1, sizeof(struct _ZTestStruct));
+    test = (ZTest)calloc(1, sizeof(struct _ZTestStruct));
     test->curSubTest = 0;
     test->failCnt = 0;
     test->testName = strndup(testname, 1024);
