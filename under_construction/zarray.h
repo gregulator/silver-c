@@ -57,16 +57,16 @@
     } while (0)
 
 #define _ZARRAY_DEBUG_MAGIC_MATCHES(zarray) \
-    (_ZARRAY_HEADER(zarray)->_magicid[0] == 'z' \
-        && _ZARRAY_HEADER(zarray)->_magicid[1] == 'a' \
-        && _ZARRAY_HEADER(zarray)->_magicid[2] == 'r' \
-        && _ZARRAY_HEADER(zarray)->_magicid[3] == 'y')
+    ((zarray)->_magicid[0] == 'z' \
+        && (zarray)->_magicid[1] == 'a' \
+        && (zarray)->_magicid[2] == 'r' \
+        && (zarray)->_magicid[3] == 'y')
 
 #define _ZARRAY_DEBUG_CLEAR_MAGIC(zarray) \
-    (_ZARRAY_HEADER(zarray)->_magicid[0] = 0, \
-     _ZARRAY_HEADER(zarray)->_magicid[1] = 0, \
-     _ZARRAY_HEADER(zarray)->_magicid[2] = 0, \
-     _ZARRAY_HEADER(zarray)->_magicid[3] = 0)
+    ((zarray)->_magicid[0] = 0, \
+     (zarray)->_magicid[1] = 0, \
+     (zarray)->_magicid[2] = 0, \
+     (zarray)->_magicid[3] = 0)
 
 #define _ZARRAY_DEBUG_IS_ZARRAY(zarray)  \
     ((zarray) && _ZARRAY_DEBUG_MAGIC_MATCHES(zarray))
@@ -88,17 +88,46 @@
 #define _ZARRAY_DEBUG_CLEAR_MAGIC(zarray) (void) 0
 #endif
 
-typedef struct 
+#ifdef __cplusplus
+template <typename T>
+struct _ZArrayStruct
 {
 #if _ZARRAY_DEBUG
     char _magicid[4];
 #endif
     unsigned numItems;
     unsigned actualNumItems;
-    unsigned elemSize;
-} _ZArrayHeader;
+    T * item;
+public:
+    void Realloc(void) {
+        item = (T *)realloc(item, actualNumItems * sizeof(T));
+    }
+};
+#define ZARRAY_STRUCT(typ) _ZArrayStruct<typ>
+#else   /* __cplusplus (ELSE) */
+#if _ZARRAY_DEBUG
+#define ZARRAY_STRUCT(typ) \
+    struct \
+    { \
+        char _magicid[4]; \
+        unsigned numItems; \
+        unsigned actualNumItems; \
+        typ * item; \
+    }
+#else
+#define ZARRAY_STRUCT(typ) \
+    struct \
+    { \
+        unsigned numItems; \
+        unsigned actualNumItems; \
+        typ * item; \
+    }
+#endif
+#endif /* __cplusplus (ENDIF) */
 
-#define ZArray void *
+
+#define ZARRAY(typ) ZARRAY_STRUCT(typ) *
+
 static unsigned _ZArray_NextPowerOfTwo(unsigned x)
 {
     /* From http://acius2.blogspot.com/2007/11/calculating-next-power-of-2.html */
@@ -111,19 +140,16 @@ static unsigned _ZArray_NextPowerOfTwo(unsigned x)
     return x + 1;
 }
 
-#define _ZARRAY_HEADER_SIZE (sizeof(_ZArrayHeader))
-
-#define _ZARRAY_ARRAY(pHeader) \
-    ((void *)&(((char *)pHeader)[+_ZARRAY_HEADER_SIZE]))
-
-#define _ZARRAY_HEADER(zarray) \
-    ((_ZArrayHeader *)&(((char *)zarray)[-_ZARRAY_HEADER_SIZE]))
-
+#ifdef __cplusplus
+#define _ZARRAY_RETURN_CAST(typ) (ZARRAY(typ))
+#define _ZARRAY_REALLOC(zarray) zarray->Realloc();
+#else
 #define _ZARRAY_REALLOC(zarray) \
-    (zarray) = realloc(_ZARRAY_HEADER(zarray), \
-         _ZARRAY_HEADER(zarray)->elemSize*_ZARRAY_HEADER(zarray)->actualNumItems \
-            + sizeof(_ZArrayHeader)); \
-    (zarray) = _ZARRAY_ARRAY(zarray); \
+    (zarray)->item = realloc(((zarray)->item), \
+         sizeof(*((zarray)->item))*(zarray)->actualNumItems)
+
+#define _ZARRAY_RETURN_CAST(typ) 
+#endif
 
 /**
  * Allocate a new dynamic array, returning a pointer to the underlying
@@ -142,24 +168,31 @@ static unsigned _ZArray_NextPowerOfTwo(unsigned x)
  * @retval NULL 
  *      Returns NULL if allocation failed.
  */
-static ZArray ZARRAY_ALLOC(unsigned elemSize, unsigned startNumItems)
-{
-    _ZArrayHeader *full;
-    unsigned actualNumItems;
+#define ZARRAY_ALLOC(typ, startNumItems) \
+    _ZARRAY_RETURN_CAST(typ) _ZArray_AllocGeneric(sizeof(typ), startNumItems)
 
+static void * _ZArray_AllocGeneric(unsigned elemSize, unsigned startNumItems)
+{
+    unsigned actualNumItems;
+    typedef ZARRAY_STRUCT(void) _Struct;
+    _Struct * out;
+    out = (_Struct *)malloc(sizeof(*out));
     actualNumItems = _ZArray_NextPowerOfTwo(startNumItems+1);
-    full = malloc(elemSize*actualNumItems + _ZARRAY_HEADER_SIZE);
-    full->numItems = startNumItems;
-    full->actualNumItems = actualNumItems;
-    full->elemSize = elemSize;
-    full->elemSize = elemSize;
+    out->numItems = startNumItems;
+    out->actualNumItems = actualNumItems;
 #if _ZARRAY_DEBUG
-    full->_magicid[0] = 'z';
-    full->_magicid[1] = 'a';
-    full->_magicid[2] = 'r';
-    full->_magicid[3] = 'y';
+    out->_magicid[0] = 'z';
+    out->_magicid[1] = 'a';
+    out->_magicid[2] = 'r';
+    out->_magicid[3] = 'y';
 #endif
-    return _ZARRAY_ARRAY(full);
+    out->item = malloc(elemSize*actualNumItems);
+    if (!out->item)
+    {
+        free(out);
+        return NULL;
+    }
+    return (void *)out;
 }
 
 /**
@@ -177,7 +210,8 @@ static ZArray ZARRAY_ALLOC(unsigned elemSize, unsigned startNumItems)
         if (zarray) { \
             _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_FREE", zarray);  \
             _ZARRAY_DEBUG_CLEAR_MAGIC(zarray); \
-            free(_ZARRAY_HEADER(zarray)); \
+            free((zarray)->item); \
+            free((zarray)); \
         } \
     } while (0);
 
@@ -191,14 +225,15 @@ static ZArray ZARRAY_ALLOC(unsigned elemSize, unsigned startNumItems)
  *
  * @retval unsigned number of elements in the array
  */
-static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
+#define ZARRAY_NUM_ITEMS(zarray) _ZArray_NumItemsGeneric((void *)zarray)
+static unsigned _ZArray_NumItemsGeneric(void * zarray)
 {
-    _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_NUM_ITEMS", zarray);
-    return _ZARRAY_HEADER(zarray)->numItems;
+    _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_NUM_ITEMS", (ZARRAY(void))zarray);
+    return ((ZARRAY(void))(zarray))->numItems;
 }
 #else
 #define ZARRAY_NUM_ITEMS(zarray) \
-        (_ZARRAY_HEADER(zarray)->numItems)
+        ((zarray)->numItems)
 #endif
 
 /**
@@ -220,7 +255,7 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
  * @retval lvalue Modifiable l-value that is the last element in the array.
  */
 #define ZARRAY_TAIL(zarray) \
-    ((zarray)[ZARRAY_NUM_ITEMS(zarray) - 1])
+    (ZARRAY_AT((zarray), ZARRAY_NUM_ITEMS(zarray) - 1))
 
 /**
  * Increase the size of the array by one (1) and update the array pointer.
@@ -242,10 +277,10 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
 #define ZARRAY_GROW_BY_ONE(zarray) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_GROW_BY_ONE", zarray);  \
-        _ZARRAY_HEADER(zarray)->numItems++; \
-        if (_ZARRAY_HEADER(zarray)->numItems > _ZARRAY_HEADER(zarray)->actualNumItems) \
+        (zarray)->numItems++; \
+        if ((zarray)->numItems > (zarray)->actualNumItems) \
         { \
-            _ZARRAY_HEADER(zarray)->actualNumItems *= 2; \
+            (zarray)->actualNumItems *= 2; \
             _ZARRAY_REALLOC(zarray); \
         } \
     } while (0)
@@ -270,12 +305,12 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
 #define ZARRAY_SHRINK_BY_ONE(zarray) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_SHRINK_BY_ONE", zarray);  \
-        _ZARRAY_DEBUG_VERIFY(_ZARRAY_HEADER(zarray)->numItems, \
+        _ZARRAY_DEBUG_VERIFY((zarray)->numItems, \
                 "ERROR in ZARRAY_SHRINK_BY_ONE: Cannot shrink <zarray> below 0 elements."); \
-        _ZARRAY_HEADER(zarray)->numItems--; \
-        if (_ZARRAY_HEADER(zarray)->numItems < _ZARRAY_HEADER(zarray)->actualNumItems/4) \
+        (zarray)->numItems--; \
+        if ((zarray)->numItems < (zarray)->actualNumItems/4) \
         { \
-            _ZARRAY_HEADER(zarray)->actualNumItems /= 2; \
+            (zarray)->actualNumItems /= 2; \
             _ZARRAY_REALLOC(zarray); \
         } \
     } while (0)
@@ -285,10 +320,10 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_GROW", zarray);  \
         _ZARRAY_DEBUG_VERIFY(((numItemsToAdd) >= 0), \
                 "ERROR in ZARRAY_GROW: <numItemsToAdd> must be positive."); \
-        _ZARRAY_HEADER(zarray)->numItems += (numItemsToAdd); \
-        if (_ZARRAY_HEADER(zarray)->numItems > _ZARRAY_HEADER(zarray)->actualNumItems) \
+        (zarray)->numItems += (numItemsToAdd); \
+        if ((zarray)->numItems > (zarray)->actualNumItems) \
         { \
-            _ZARRAY_HEADER(zarray)->actualNumItems = _ZArray_NextPowerOfTwo(_ZARRAY_HEADER(zarray)->numItems + 1); \
+            (zarray)->actualNumItems = _ZArray_NextPowerOfTwo((zarray)->numItems + 1); \
             _ZARRAY_REALLOC(zarray); \
         } \
     } while (0)
@@ -296,12 +331,12 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
 #define ZARRAY_SHRINK(zarray, numItemsToRemove) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_SHRINK", zarray);  \
-        _ZARRAY_DEBUG_VERIFY(_ZARRAY_HEADER(zarray)->numItems > numItemsToRemove, \
+        _ZARRAY_DEBUG_VERIFY((zarray)->numItems > numItemsToRemove, \
                 "ERROR in ZARRAY_SHRINK: Cannot shrink <zarray> below 0 elements."); \
-        _ZARRAY_HEADER(zarray)->numItems -= (numItemsToRemove); \
-        if (_ZARRAY_HEADER(zarray)->numItems < _ZARRAY_HEADER(zarray)->actualNumItems / 4) \
+        (zarray)->numItems -= (numItemsToRemove); \
+        if ((zarray)->numItems < (zarray)->actualNumItems / 4) \
         { \
-            _ZARRAY_HEADER(zarray)->actualNumItems = _ZArray_NextPowerOfTwo(_ZARRAY_HEADER(zarray)->numItems + 1) * 2; \
+            (zarray)->actualNumItems = _ZArray_NextPowerOfTwo((zarray)->numItems + 1) * 2; \
             _ZARRAY_REALLOC(zarray); \
         } \
     } while (0)
@@ -311,15 +346,15 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_RESIZE", zarray);  \
         _ZARRAY_DEBUG_VERIFY(((newSize) >= 0), \
                 "ERROR in ZARRAY_RESIZE: <numItems> must be positive."); \
-        _ZARRAY_HEADER(zarray)->numItems = (newSize); \
-        if (_ZARRAY_HEADER(zarray)->numItems > _ZARRAY_HEADER(zarray)->actualNumItems) \
+        (zarray)->numItems = (newSize); \
+        if ((zarray)->numItems > (zarray)->actualNumItems) \
         { \
-            _ZARRAY_HEADER(zarray)->actualNumItems = _ZArray_NextPowerOfTwo(_ZARRAY_HEADER(zarray)->numItems + 1); \
+            (zarray)->actualNumItems = _ZArray_NextPowerOfTwo((zarray)->numItems + 1); \
             _ZARRAY_REALLOC(zarray); \
         } \
-        else if (_ZARRAY_HEADER(zarray)->numItems < _ZARRAY_HEADER(zarray)->actualNumItems / 4) \
+        else if ((zarray)->numItems < (zarray)->actualNumItems / 4) \
         { \
-            _ZARRAY_HEADER(zarray)->actualNumItems = _ZArray_NextPowerOfTwo(_ZARRAY_HEADER(zarray)->numItems + 1) * 2; \
+            (zarray)->actualNumItems = _ZArray_NextPowerOfTwo((zarray)->numItems + 1) * 2; \
             _ZARRAY_REALLOC(zarray); \
         } \
     } while (0)
@@ -331,24 +366,16 @@ static unsigned ZARRAY_NUM_ITEMS(ZArray zarray)
         ZARRAY_TAIL(zarray) = (value); \
     } while (0)
 
-/*
-    Macro: ZARRAY_POP
-
-    Pops a thingy
-
-    Parameters:
-
-        zarray - Array to pop
-        dest - Destinationz
-
- */
 #define ZARRAY_POP(zarray, dest) \
     do { \
         _ZARRAY_DEBUG_VERIFY_IS_ZARRAY("ZARRAY_POP", zarray);  \
-        _ZARRAY_DEBUG_VERIFY(_ZARRAY_HEADER(zarray)->numItems > 0, \
+        _ZARRAY_DEBUG_VERIFY((zarray)->numItems > 0, \
                 "ERROR in ZARRAY_POP: <zarray> is empty"); \
         (dest) = ZARRAY_TAIL(zarray); \
         ZARRAY_SHRINK_BY_ONE(zarray); \
     } while (0)
+
+#define ZARRAY_AT(zarray, idx) \
+    ((zarray)->item[(idx)])
 
 #endif
