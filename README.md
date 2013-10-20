@@ -1,4 +1,4 @@
-Silver-c (aka, "libag")
+Z - Do more with C.
 =====
 
 Collection of libraries that make C more powerful and easier to use without sacrificing performance.

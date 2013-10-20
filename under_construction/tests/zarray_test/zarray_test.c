@@ -1,5 +1,5 @@
 #include <ztest.h>
-#include <zarray2.h>
+#include <zarray.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -21,14 +21,14 @@ int main(int argc, const char *argv[])
     int numGood;
 
     /* Allocate and test 0-size array */
-    numbers = ZARRAY_ALLOC(long double, 0);
+    numbers = ZARRAY_NEW(long double, 0);
     ZTEST_VERIFY(zt, "0-element array allocation", numbers != NULL);
     ZTEST_VERIFY(zt, "0-element array num items", ZARRAY_NUM_ITEMS(numbers) == 0);
     ZARRAY_FREE(numbers);
     ZTEST_VERIFY(zt, "0-element array free doesn't crash", true);
 
     /* Another 0-size array */
-    numbers = ZARRAY_ALLOC(long double, 0);
+    numbers = ZARRAY_NEW(long double, 0);
     ZTEST_VERIFY(zt, "0-element array allocation", numbers != NULL);
     ZTEST_VERIFY(zt, "0-element array num items", ZARRAY_NUM_ITEMS(numbers) == 0);
 
@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
     ZTEST_VERIFY(zt, "1-element array free doesn't crash", true);
 
     /* Another 0-size array, appended with values, verify, then pop all values */
-    numbers = ZARRAY_ALLOC(long double, 0);
+    numbers = ZARRAY_NEW(long double, 0);
     ZTEST_VERIFY(zt, "0-element array allocation", numbers != NULL);
     ZTEST_VERIFY(zt, "0-element array num items", ZARRAY_NUM_ITEMS(numbers) == 0);
 
@@ -56,7 +56,7 @@ int main(int argc, const char *argv[])
 
     for (i--; i >= 0; i--)
     {
-        ZARRAY_POP(numbers, val);
+        val = ZARRAY_POP(numbers);
         ZTEST_VERIFY(zt, "num items correct after pop", ZARRAY_NUM_ITEMS(numbers) == (unsigned)i);
         ZTEST_VERIFY(zt, "value correct after pop", val == i*4.0);
         if (i > 0)
@@ -65,20 +65,20 @@ int main(int argc, const char *argv[])
     ZARRAY_FREE(numbers);
 
     /* Allocate array of 100 Sphere structures */
-    spheres = ZARRAY_ALLOC(Sphere, 100);
+    spheres = ZARRAY_NEW(Sphere, 100);
     ZTEST_VERIFY(zt, "100-struct num items", ZARRAY_NUM_ITEMS(spheres) == 100);
     for (i = 0; i < (signed)ZARRAY_NUM_ITEMS(spheres); i++)
     {
-        spheres->item[i].x = 0.5*i;
-        spheres->item[i].y = 0.25*i;
-        spheres->item[i].z = 0.125*i;
-        spheres->item[i].radius = 5*i;
+        ZARRAY_AT(spheres, i).x = 0.5*i;
+        ZARRAY_AT(spheres, i).y = 0.25*i;
+        ZARRAY_AT(spheres, i).z = 0.125*i;
+        ZARRAY_AT(spheres, i).radius = 5*i;
     }
     while (ZARRAY_NUM_ITEMS(spheres) > 0)
     {
         Sphere sphere;
         i--;
-        ZARRAY_POP(spheres, sphere);
+        sphere = ZARRAY_POP(spheres);
         ZTEST_VERIFY(zt, "spheres[i].x correct", sphere.x == 0.5*i);
         ZTEST_VERIFY(zt, "spheres[i].y correct", sphere.y == 0.25*i);
         ZTEST_VERIFY(zt, "spheres[i].z correct", sphere.z == 0.125*i);
@@ -89,7 +89,7 @@ int main(int argc, const char *argv[])
     ZARRAY_FREE(spheres);
 
     /* Resize big arrays of chars */
-    str0 = ZARRAY_ALLOC(char, 0);
+    str0 = ZARRAY_NEW(char, 0);
     ZTEST_VERIFY(zt, "0-element array allocation", str0 != NULL);
     ZTEST_VERIFY(zt, "0-element array num items", ZARRAY_NUM_ITEMS(str0) == 0);
     #define TEN_MILLION 10000000
@@ -111,7 +111,7 @@ int main(int argc, const char *argv[])
 
 
     /* Grow big array of chars */
-    str1 = ZARRAY_ALLOC(char, 0);
+    str1 = ZARRAY_NEW(char, 0);
     for (i = 0; i < ONE_MILLION; i++)
         ZARRAY_GROW_BY_ONE(str1);
     ZTEST_VERIFY(zt, "GROW BY ONE to 1mil items", ZARRAY_NUM_ITEMS(str1) == ONE_MILLION);

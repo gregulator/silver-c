@@ -1,10 +1,10 @@
-#include <zarray2.h>
+#include <zarray.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 int main(void)
 {
-    ZARRAY(int) vals = ZARRAY_ALLOC(int, 0);
+    ZARRAY(int) vals = ZARRAY_NEW(int, 0);
     bool good = true;
     int i;
     for (i = 0; i < 10000000; i++)

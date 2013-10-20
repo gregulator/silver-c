@@ -1,3 +1,27 @@
+ZARRAY - Generic Dynamic Arrays
+
+Create a dynamic array of any type:
+
+    ZARRAY(int) myIntArray = ZARRAY_CREATE(int, 100, 0);
+    ZARRAY(Sphere) sphereArray = ZARRAY_CREATE_ZEROED(Sphere, 100, 0);
+
+    ZARRAY_AT(sphereArray, 5).x = 5;
+
+    *(sphereArray->_data[5])
+
+    Sphere *data = ZARRAY_OBTAIN_DATA_PTR(sphereArray);
+    data[0].x = 5;
+
+    ZARRAY_RELEASE_DATA_PTR(data);
+
+
+ZLIST(Sphere) sphereList;
+
+ZLISTNODE(Sphere) sphereNode = ZLIST_HEAD(sphereList);
+
+sphereNode->val;
+
+
 AgDynArray - The awesomest dynamic array implementation
 ---------------------------------------------------------
 
