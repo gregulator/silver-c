@@ -4,7 +4,11 @@
 #ifndef RED_BLOOM_INCLUDED
 #define RED_BLOOM_INCLUDED
 
-typedef struct RedBloom_t RedBloom;
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+
+typedef struct RedBloom_t * RedBloom;
 
 /*
  * RedBloom_New - Create a new (empty) bloom filter.
@@ -74,7 +78,7 @@ void RedBloom_InsertS(RedBloom bloom, const char *szItem);
  *          true -- The bloom filter POSSIBLY CONTAINS the item.
  *          false -- The bloom filter DEFINITELY DOES NOT contain the item.
  */
-bool RedBloom_MayContain(RedBloom bloom, void *pItem, size_t itemSize);
+bool RedBloom_MayContain(RedBloom bloom, const void *pItem, size_t itemSize);
 
 /*
  * RedBloom_MayContainS - Determine if bloom filter may contain a string.
