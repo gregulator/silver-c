@@ -47,6 +47,9 @@ void RedBloom_Free(RedBloom bloom);
  *          sequence of bytes <itemSize> in length.
  *
  *      <itemSize> is the number of bytes of data that <pItem> points to.
+ *
+ *      If element has already been added to the bloom filter, this routine has
+ *      no effect.
  */
 void RedBloom_Insert(RedBloom bloom, const void *pItem, size_t itemSize);
 
@@ -61,6 +64,9 @@ void RedBloom_Insert(RedBloom bloom, const void *pItem, size_t itemSize);
  *      <bloom> is the bloom filter object to add to.
  *
  *      <szItem> is a NULL-terminated string to add.
+ *
+ *      If element has already been added to the bloom filter, this routine has
+ *      no effect.
  */
 void RedBloom_InsertS(RedBloom bloom, const char *szItem);
 

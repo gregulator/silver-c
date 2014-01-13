@@ -38,11 +38,14 @@ uint32_t _ComputeHash(
 
 RedBloom RedBloom_New(uint32_t estimatedNumItems, double falsePositiveRate)
 {
-    // m = -(n ln(p))/((ln 2)^2)
-    // k = (m/n) ln(2)
-    //
-    // m := number of bits
-    // k := number of hash functions
+    /* 
+     * From Wikipedia:
+     *  m = -(n ln(p))/((ln 2)^2)
+     *  k = (m/n) ln(2)
+     *
+     *  m := number of bits
+     *  k := number of hash functions
+     */
     RedBloom bloom;
 
     bloom = malloc(sizeof(struct RedBloom_t));
@@ -83,7 +86,7 @@ void RedBloom_Insert(RedBloom bloom, const void *pItem, size_t itemSize)
 
 void RedBloom_InsertS(RedBloom bloom, const char *szItem)
 {
-    return RedBloom_Insert(bloom, szItem, strlen(szItem) + 1);
+    RedBloom_Insert(bloom, szItem, strlen(szItem) + 1);
 }
 
 bool RedBloom_MayContain(RedBloom bloom, const void *pItem, size_t itemSize)
