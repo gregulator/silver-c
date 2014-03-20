@@ -87,6 +87,8 @@
 #ifndef RED_TEST_INCLUDED
 #define RED_TEST_INCLUDED
 
+#include <stdbool.h>
+
 /*
  * RedTest datatype -- ADT representing a collection of subtests.  This is
  *      referred to as a test "suite".
@@ -100,7 +102,8 @@ typedef struct RedTest_t * RedTest;
  *      "suite") and returns it.  Initially the suite has 0 subtests.
  *
  *      <testname> is a null-terminated string name for the test suite.  Often
- *          argv[0] is used.
+ *          argv[0] is used.  Internally, a copy of this string is stored (up
+ *          to 1024 characters).
  *
  *      <fnOnTestResult> is a callback routine that is triggered each time
  *          RedTest_Verify is called, which can be used for customized
@@ -158,6 +161,27 @@ RedTest RedTest_Begin(
 void RedTest_Verify(RedTest suite, const char *subtestName, bool passCondition);
 
 /*
+ * RedTest_GetName -- Get the name of the test suite.
+ *
+ *      <suite> is the test suite object from RedTest_Begin.
+ *
+ *      Returns the name of the test suite, as passed into the <testname>
+ *      parameter of RedTest_Begin.
+ */
+const char * RedTest_GetName(RedTest suite);
+
+/*
+ * RedTest_NumTotal -- Count number of subtests that have passed or failed up
+ *      to this point.
+ *
+ *      <suite> is the test suite object from RedTest_Begin.
+ *
+ *      Returns number of subtests that have passed or failed.  This is equal
+ *      to the number of time RedTest_Verify has been called.
+ */
+unsigned RedTest_NumTotal(RedTest suite);
+
+/*
  * RedTest_NumPassed -- Count number of subtests that have passed up to this
  *      point.
  *
@@ -202,6 +226,6 @@ unsigned RedTest_NumTotal(RedTest suite);
  *
  *      <suite> is the test suite object from RedTest_Begin.
  */
-bool RedTest_End(RedTest suite);
+int RedTest_End(RedTest suite);
 
 #endif
