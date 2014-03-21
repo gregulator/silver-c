@@ -131,7 +131,7 @@ typedef struct RedTest_t * RedTest;
 RedTest RedTest_Begin(
         const char *testname, 
         void (*fnOnTestResult)(RedTest, const char *, bool),
-        void (*fnOnEnd)(RedTest);
+        void (*fnOnEnd)(RedTest));
 
 /*
  * RedTest_Verify -- Log the result of a subtest.

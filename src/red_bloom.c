@@ -53,9 +53,9 @@ RedBloom RedBloom_New(uint32_t estimatedNumItems, double falsePositiveRate)
         return NULL;
 
     bloom->dataSizeInBytes = 
-        (size_t)ceil(-(estimatedNumItems*logf(falsePositiveRate))/(logf(2.0f)*logf(2.0f))) / 8;
+        (size_t)(ceil(-(estimatedNumItems*logf(falsePositiveRate))/(logf(2.0f)*logf(2.0f))) + 7) / 8;
     bloom->numHashes = 
-        (unsigned int)ceil(((float)bloom->dataSizeInBytes/(float)estimatedNumItems)*log2f(2.0f));
+        (unsigned int)ceil(((float)8*bloom->dataSizeInBytes/(float)estimatedNumItems)*logf(2.0f));
     bloom->data = calloc(bloom->dataSizeInBytes, 1);
     if (!bloom->data)
     {

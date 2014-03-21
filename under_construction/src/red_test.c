@@ -10,15 +10,15 @@ struct RedTest_t
     char * testName;
     unsigned numFailed;
     unsigned numTotal;
-    void (fnOnTestResult)(RedTest, const char *, bool);
-    void (fnOnEnd)(RedTest);
+    void (*fnOnTestResult)(RedTest, const char *, bool);
+    void (*fnOnEnd)(RedTest);
 };
 
 /*
  * Default RedTest_Verify reporting callback.  Logs failures to stderr.  Silent
  * for passing subtests.
  */
-static _DefaultOnTestResult(RedTest suite, const char *subtestName, bool passed)
+static void _DefaultOnTestResult(RedTest suite, const char *subtestName, bool passed)
 {
     if (!passed)
     {
@@ -34,7 +34,7 @@ static _DefaultOnTestResult(RedTest suite, const char *subtestName, bool passed)
  * Default RedTest_End reporting callback.  Logs one-line final summary to
  * stderr.
  */
-static _DefaultOnEnd(RedTest suite)
+static void _DefaultOnEnd(RedTest suite)
 {
     bool passed = (RedTest_NumFailed(suite) == 0);
     if (passed)
@@ -102,10 +102,15 @@ unsigned RedTest_NumTotal(RedTest suite)
 {
     return suite->numTotal;
 }
-
-bool RedTest_End(RedTest suite)
+const char * RedTest_GetName(RedTest suite)
 {
-    bool passed = !(ztest->failCnt);
+    return suite->testName;
+}
+
+
+int RedTest_End(RedTest suite)
+{
+    bool passed = !(suite->numFailed);
     suite->fnOnEnd(suite);
     free(suite->testName);
     free(suite);
