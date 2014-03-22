@@ -17,23 +17,24 @@ uint32_t _ComputeHash(
         size_t keySize, 
         uint32_t numBuckets)
 {
-        /* Jenkins algoritm */
-        const char * key = (const char *)keyObj;
-        uint32_t hash = 0;
-        size_t i;
-        hash += hashNumber;
+    /* TODO: more efficient generation of multiple hashes */
+    /* Jenkins algoritm */
+    const char * key = (const char *)keyObj;
+    uint32_t hash = 0;
+    size_t i;
+    hash += hashNumber;
+    hash += (hash << 10);
+    hash ^= (hash >> 6);
+    for (i = 0; i < keySize; i++)
+    {
+        hash += key[i];
         hash += (hash << 10);
         hash ^= (hash >> 6);
-        for (i = 0; i < keySize; i++)
-        {
-            hash += key[i];
-            hash += (hash << 10);
-            hash ^= (hash >> 6);
-        }
-        hash += (hash << 3);
-        hash ^= (hash >> 11);
-        hash += (hash << 15);
-        return hash % numBuckets;
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash % numBuckets;
 }
 
 RedBloom RedBloom_New(uint32_t estimatedNumItems, double falsePositiveRate)
