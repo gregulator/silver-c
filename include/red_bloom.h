@@ -8,6 +8,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/*
+ * RedBloom datatype -- ADT representing a bloom filter data structure.
+ */
 typedef struct RedBloom_t * RedBloom;
 
 /*
@@ -104,7 +107,7 @@ bool RedBloom_MayContain(RedBloom bloom, const void *pItem, size_t itemSize);
  */
 bool RedBloom_MayContainS(RedBloom bloom, const char *szItem);
 
-/* THE FOLLOWING ARE NOT SUPPORTED
+/* THE FOLLOWING ARE NOT SUPPORTED AT THIS TIME
  * Reason: Concerned about versioning issues, if we change the hash function.
  */
 /*

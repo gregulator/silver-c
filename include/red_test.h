@@ -1,4 +1,7 @@
-/*  Author: Gregory Prsiament (greg@toruslabs.com)
+/*  
+ *  red_test.h -- Simple C Testing Framework
+ *
+ *  Author: Gregory Prsiament (greg@toruslabs.com)
  *
  *  ===========================================================================
  *  Creative Commons CC0 1.0 Universal - Public Domain 
