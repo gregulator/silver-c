@@ -1,5 +1,19 @@
 /*
- * RedBloom - Bloom Filter Data Structure
+ *  red_bloom.h - Bloom Filter Data Structure
+ *
+ *  Author: Gregory Prsiament (greg@toruslabs.com)
+ *
+ *  ===========================================================================
+ *  Creative Commons CC0 1.0 Universal - Public Domain 
+ *
+ *  To the extent possible under law, Gregory Prisament has waived all
+ *  copyright and related or neighboring rights to RedTest. This work is
+ *  published from: United States. 
+ *
+ *  For details please refer to either:
+ *      - http://creativecommons.org/publicdomain/zero/1.0/legalcode
+ *      - The LICENSE file in this directory, if present.
+ *  ===========================================================================
  */
 #ifndef RED_BLOOM_INCLUDED
 #define RED_BLOOM_INCLUDED

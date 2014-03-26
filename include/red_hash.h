@@ -1,6 +1,21 @@
-/*
- * RED_HASH -- Hash table module.
+/*  
+ *  red_hash.h -- Hash Table Interface
  *
+ *  Author: Gregory Prsiament (greg@toruslabs.com)
+ *
+ *  ===========================================================================
+ *  Creative Commons CC0 1.0 Universal - Public Domain 
+ *
+ *  To the extent possible under law, Gregory Prisament has waived all
+ *  copyright and related or neighboring rights to RedTest. This work is
+ *  published from: United States. 
+ *
+ *  For details please refer to either:
+ *      - http://creativecommons.org/publicdomain/zero/1.0/legalcode
+ *      - The LICENSE file in this directory, if present.
+ *  ===========================================================================
+ */
+/*
  *  OVERVIEW
  *
  *      The RED_HASH module provides a key-value memory store with constant-time
@@ -10,6 +25,14 @@
  *          smaller integer types, by casting to/from (void*), to store small
  *          integer values.  Keep in mind that the integer size for which it is
  *          safe to do this is platform dependent.
+ *
+ *  PERFORMANCE NOTE
+ *
+ *      All hash table operations take amortized constant O(1) time, unless
+ *      otherwise specified.  However, this O(1) performance is only true for
+ *      small hash tables with < ~10 million items, after which point most
+ *      single operations will take O(N) time (proportional to the size of the
+ *      hash table).
  *
  *  BASIC OPERATIONS
  *
@@ -30,11 +53,11 @@
  *
  *      Insert a key-value pair (string key):
  *
- *          RedHash_INSERT(hash, "My Quaternion", pVal);
+ *          RedHash_InsertS(hash, "My Quaternion", pVal);
  *
  *      Lookup by key (string key), defaulting to NULL:
  *
- *          pVal = RedHash_GET_OR_NULL(hash, "My Quaternion");
+ *          pVal = RedHash_GetWithDefaultS(hash, "My Quaternion", NULL);
  *
  *      For non-string keys, use the RedHash_Insert/RedHash_Get/etc routines
  *      instead of the macros.
@@ -113,6 +136,10 @@ void
 /*
  * RedHash_Get - Get the value associated with a key (general key).
  *
+ *      This routine will assert if the key does not exist in the hash table.
+ *      If you would rather have it return a default value, use
+ *      RedHash_GetWithDefault instead.
+ *
  *      <pMap> is the hash table to lookup into.
  *
  *      <key> is a pointer to a block of memory which will be used as the key
@@ -131,7 +158,7 @@ void *
  *
  *      This routine will assert if the key does not exist in the hash table.
  *      If you would rather have it return a default value, use
- *      RedHash_GET_WITH_DEFAULT instead.
+ *      RedHash_GetWithDefault instead.
  *
  *      <pMap> is the hash table to lookup into.
  *
@@ -264,7 +291,7 @@ bool
             void *value);
 
 /*
- * RedHash_UpdateOrInsert - Update the value associated with a key, inserting
+ * RedHash_UpdateOrInsertS - Update the value associated with a key, inserting
  *      the value if the key does not exist (null-terminated string keys).
  *
  *      <pMap> is the hash table to update.
@@ -289,7 +316,7 @@ bool
             strlen(key)+1, \
             value)
 /*
- * RedHash_remove - Remove a key-value pair from hash table (general key).
+ * RedHash_Remove - Remove a key-value pair from hash table (general key).
  *
  *      This routine will assert if the key does not exist in the hash table.
  *
@@ -373,6 +400,7 @@ bool RedHash_IsEmpty(const RedHash hash);
  */
 bool RedHash_Clear(const RedHash hash);
 
+/* TODO: document */
 void RedHashIterator_Init(RedHashIterator_t *pIter, RedHash hash);
 
 bool RedHashIterator_Advance(RedHashIterator_t *pIter, const void **ppOutKey, size_t *pOutKeySize, const void **ppOutValue);
