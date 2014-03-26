@@ -17,10 +17,9 @@ typedef struct RedHash_t
     RedHashNodeHeader ** buckets;
 } RedHash_t;
 
-#define GET_KEY
-
 static const unsigned _RedHashValidBucketCounts[] =
 {
+    /* primes near powers of 2 */
     23,
     509,
     1021,
@@ -31,7 +30,12 @@ static const unsigned _RedHashValidBucketCounts[] =
     32771,
     65521,
     131071,
-    /* TODO: extend this list */
+    256049,
+    512671,
+    1281101,
+    2562317,
+    5194069,
+    10991719  
 };
 #define _REDHASH_NUM_SIZE_LEVELS (sizeof(_RedHashValidBucketCounts) / sizeof(unsigned))
 
