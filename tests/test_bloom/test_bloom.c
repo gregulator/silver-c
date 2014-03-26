@@ -37,7 +37,6 @@
  *  8   |  "ORANGE - 8"
  *  ...
  *
- * Caller must free the returned string.
  */
 static void _GenStringValue(char *dest, int maxLength, uint32_t i)
 {
