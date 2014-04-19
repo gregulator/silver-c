@@ -181,7 +181,7 @@ static void * _ZArray_AllocGeneric(unsigned elemSize, unsigned startNumItems)
 
 #define ZARRAY_NEW_ZEROED(typ, startNumItems) \
     _ZARRAY_RETURN_CAST(typ) _ZArray_AllocGenericZeroed(sizeof(typ), startNumItems)
-static void * _ZArray_AllocGenericZeroed(unsigned elemSize, unsigned startNumItems)
+static void * _ZArray_AllocGenericZeroed(unsigned elemSize, unsigned startNumItems) __attribute__ ((unused))
 {
     unsigned actualNumItems;
     typedef ZARRAY_STRUCT(void) _Struct;

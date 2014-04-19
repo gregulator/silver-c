@@ -1,16 +1,22 @@
 #include "red_json.h"
 
-#include "zhash.h"
-#include "zarray.h"
+#include "red_hash.h"
+#include "../under_construction/zarray.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-GENERATE_ZHASH_FIXED_KEY_IMPLEMENTATION(_ZObjHash, char *, bool);
-
 #define REF(hObj) ((hObj)->refcnt++, (hObj))
 
-typedef struct RedJsonValue
+static char * _StrDup(const char *s)
+{
+    char * out = malloc(strlen(s) + 1);
+    if (out)
+        strcpy(out, s);
+    return out;
+}
+
+typedef struct RedJsonValue_t
 {
     int refcnt;
     RedJsonValueTypeEnum type;
@@ -18,338 +24,350 @@ typedef struct RedJsonValue
     {
         char *sz;
         double dbl;
-        RedJsonObjectHandle hObj;
-        RedJsonArrayHandle hArray;
-        bool bVal;
-    };
-} RedJsonValue;
+        RedJsonObject hObj;
+        RedJsonArray hArray;
+        bool boolean;
+    } val;
+} RedJsonValue_t;
 
-typedef struct RedJsonObject
+typedef struct RedJsonObject_t
 {
     int refcnt;
-    _ZObjHash hash;
-} RedJsonObject;
+    RedHash hash;
+} RedJsonObject_t;
 
-typedef struct
+typedef struct RedJsonArray_t
 {
     int refcnt;
-    ZARRAY(RedJsonValueHandle) items;
-} RedJsonArray;
+    ZARRAY(RedJsonValue) items;
+} RedJsonArray_t;
 
-RedJsonValueHandle RedJsonValue_FromString(char * sz)
+RedJsonValue RedJsonValue_FromString(char * sz)
 {
-    RedJsonValueHandle hNew;
+    RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
     hNew->type = RED_JSON_VALUE_TYPE_STRING;
-    hNew->sz = strdup(sz);
+    hNew->val.sz = _StrDup(sz);
     hNew->refcnt = 0;
     return hNew;
 }
 
-RedJsonValueHandle RedJsonValue_FromNumber(double val)
+RedJsonValue RedJsonValue_FromNumber(double val)
 {
-    RedJsonValueHandle hNew;
+    RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
     hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
-    hNew->dbl = val;
+    hNew->val.dbl = val;
     hNew->refcnt = 0;
     return hNew;
 }
 
-RedJsonValueHandle RedJsonValue_FromObject(RedJsonObjectHandle hObj)
+RedJsonValue RedJsonValue_FromObject(RedJsonObject hObj)
 {
-    RedJsonValueHandle hNew;
+    RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
     hNew->type = RED_JSON_VALUE_TYPE_OBJECT;
-    hNew->hObj = REF(hObj);
+    hNew->val.hObj = REF(hObj);
     hNew->refcnt = 0;
     return hNew;
 }
 
-RedJsonValueHandle RedJsonValue_FromArray(RedJsonArrayHandle hArray)
+RedJsonValue RedJsonValue_FromArray(RedJsonArray hArray)
 {
-    RedJsonValueHandle hNew;
+    RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
     hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
-    hNew->hArray = REF(hArray);
+    hNew->val.hArray = REF(hArray);
     hNew->refcnt = 0;
     return hNew;
 }
 
-RedJsonValueHandle RedJsonValue_FromBoolean(bool val)
+RedJsonValue RedJsonValue_FromBoolean(bool val)
 {
-    RedJsonValueHandle hNew;
+    RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
     hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
-    hNew->bVal = val;
+    hNew->val.boolean = val;
     hNew->refcnt = 0;
     return hNew;
 }
 
-RedJsonValueHandle RedJsonValue_Null()
+RedJsonValue RedJsonValue_Null()
 {
-    RedJsonValueHandle hNew;
+    RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
     hNew->type = RED_JSON_VALUE_TYPE_NULL;
     hNew->refcnt = 0;
     return hNew;
 }
 
-void _RedJsonValue_Free(RedJsonValueHandle hVal)
+void _RedJsonValue_Free(RedJsonValue hVal)
 {
-    free(hVal->sz);
+    free(hVal->val.sz);
     free(hVal);
 }
 
-char * RedJsonValue_GetString(RedJsonValueHandle hVal)
+char * RedJsonValue_GetString(RedJsonValue hVal)
 {
     assert(hVal->type == RED_JSON_VALUE_TYPE_STRING);
-    return strdup(hVal->sz);
+    return _StrDup(hVal->val.sz);
 }
-double RedJsonValue_GetNumber(RedJsonValueHandle hVal)
+double RedJsonValue_GetNumber(RedJsonValue hVal)
 {
     assert(hVal->type == RED_JSON_VALUE_TYPE_NUMBER);
-    return hVal->dbl;
+    return hVal->val.dbl;
 }
-RedJsonObjectHandle RedJsonValue_GetObject(RedJsonValueHandle hVal)
+RedJsonObject RedJsonValue_GetObject(RedJsonValue hVal)
 {
     assert(hVal->type == RED_JSON_VALUE_TYPE_OBJECT);
-    return REF(hVal->hObj);
+    return REF(hVal->val.hObj);
 }
-RedJsonArrayHandle RedJsonValue_GetArray(RedJsonValueHandle hVal)
+RedJsonArray RedJsonValue_GetArray(RedJsonValue hVal)
 {
     assert(hVal->type == RED_JSON_VALUE_TYPE_ARRAY);
-    return REF(hVal->hArray);
+    return REF(hVal->val.hArray);
 }
 
-bool RedJsonValue_IsString(RedJsonValueHandle hVal)
+bool RedJsonValue_IsString(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_STRING;
 }
-bool RedJsonValue_IsNumber(RedJsonValueHandle hVal)
+bool RedJsonValue_IsNumber(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_NUMBER;
 }
-bool RedJsonValue_IsObject(RedJsonValueHandle hVal)
+bool RedJsonValue_IsObject(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_OBJECT;
 }
-bool RedJsonValue_IsArray(RedJsonValueHandle hVal)
+bool RedJsonValue_IsArray(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_ARRAY;
 }
-bool RedJsonValue_IsNull(RedJsonValueHandle hVal)
+bool RedJsonValue_IsNull(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_NULL;
 }
 
-RedJsonObjectHandle RedJsonObject_New()
+RedJsonObject RedJsonObject_New()
 {
-    RedJsonObjectHandle hNew;
-    hNew = malloc(sizeof(RedJsonObject));
-    hNew->hash = _ZObjHash_new();
-    Ref_Init(hNew, _RedJsonValue_Free);
-    return hNew;
+    RedJsonObject jsonObj;
+    jsonObj = malloc(sizeof(RedJsonObject));
+    jsonObj->hash = RedHash_New(0);
+    jsonObj->refcnt = 1;
+    return jsonObj;
 }
 
-void RedJsonObject_Set(RedJsonObjectHandle hObj, char * szKey, RedJsonValueHandle hVal)
+void RedJsonObject_Set(RedJsonObject hObj, char * szKey, RedJsonValue hVal)
 {
     hVal->refcnt++;
-    _ZObjHash_insert(hObj->hash, szKey, hVal);
+    RedHash_InsertS(hObj->hash, szKey, hVal);
 }
 
-void RedJsonObject_SetString(RedJsonObjectHandle hObj, char * szKey, char *szVal)
+void RedJsonObject_SetString(RedJsonObject hObj, char * szKey, char *szVal)
 {
-    RedJsonValueHandle newVal = RedJsonValue_FromString(szVal);
-    _ZObjHash_insert(hObj->hash, szKey, newVal);
+    RedJsonValue newVal = RedJsonValue_FromString(szVal);
+    RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetNumber(RedJsonObjectHandle hObj, char * szKey, double val)
+void RedJsonObject_SetNumber(RedJsonObject hObj, char * szKey, double val)
 {
-    RedJsonValueHandle newVal = RedJsonValue_FromNumber(val);
-    _ZObjHash_insert(hObj->hash, szKey, newVal);
+    RedJsonValue newVal = RedJsonValue_FromNumber(val);
+    RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetObject(RedJsonObjectHandle hObj, char * szKey, RedJsonObjectHandle hObjVal)
+void RedJsonObject_SetObject(RedJsonObject hObj, char * szKey, RedJsonObject hObjVal)
 {
-    RedJsonValueHandle newVal = RedJsonValue_FromObject(hObjVal);
-    _ZObjHash_insert(hObj->hash, szKey, newVal);
+    RedJsonValue newVal = RedJsonValue_FromObject(hObjVal);
+    RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetArray(RedJsonObjectHandle hObj, char * szKey, RedJsonArrayHandle hArray)
+void RedJsonObject_SetArray(RedJsonObject hObj, char * szKey, RedJsonArray hArray)
 {
-    RedJsonValueHandle newVal = RedJsonValue_FromArray(hArray);
-    _ZObjHash_insert(hObj->hash, szKey, newVal);
+    RedJsonValue newVal = RedJsonValue_FromArray(hArray);
+    RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetBoolean(RedJsonObjectHandle hObj, char * szKey, bool val)
+void RedJsonObject_SetBoolean(RedJsonObject hObj, char * szKey, bool val)
 {
-    RedJsonValueHandle newVal = RedJsonValue_FromBoolean(hObj);
-    _ZObjHash_insert(hObj->hash, szKey, newVal);
+    RedJsonValue newVal = RedJsonValue_FromBoolean(hObj);
+    RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-RedJsonValueHandle RedJsonObject_Get(RedJsonObjectHandle hObj, char * szKey)
+RedJsonValue RedJsonObject_Get(RedJsonObject hObj, char * szKey)
 {
-    RedJsonValueHandle hVal;
-    bool contains;
-    contains = _ZObjHash_get(hObj->hash, szKey, &hVal);
-    return contains ? hVal : NULL;
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetWithDefaultS(hObj->hash, szKey, NULL);
+    return jsonVal;
 }
 
-RedJsonValueTypeEnum RedJsonObject_GetType(RedJsonObjectHandle hObj, char * szKey)
+RedJsonValueTypeEnum RedJsonObject_GetType(RedJsonObject hObj, char * szKey)
 {
-    RedJsonValueHandle hVal;
-    bool contains;
-    contains = _ZObjHash_get(hObj, szKey, &hVal);
-    return contains ? hVal->type : RED_JSON_VALUE_TYPE_INVALID;
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetWithDefaultS(hObj->hash, szKey, NULL);
+    return jsonVal ? jsonVal->type : RED_JSON_VALUE_TYPE_INVALID;
 }
 
-char * RedJsonObject_GetString(RedJsonObjectHandle hObj, char * szKey)
+char * RedJsonObject_GetString(RedJsonObject hObj, char * szKey)
 {
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetS(hObj->hash, szKey);
+    return jsonVal->val.sz;
 }
-double RedJsonObject_GetNumber(RedJsonObjectHandle hObj, char * szKey)
+double RedJsonObject_GetNumber(RedJsonObject hObj, char * szKey)
 {
-    // TODO
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetS(hObj->hash, szKey);
+    return jsonVal->val.dbl;
 }
-RedJsonObjectHandle RedJsonObject_GetObject(RedJsonObjectHandle hObj, char * szKey)
+RedJsonObject RedJsonObject_GetObject(RedJsonObject hObj, char * szKey)
 {
-    // TODO
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetS(hObj->hash, szKey);
+    return jsonVal->val.hObj;
 }
-RedJsonArrayHandle RedJsonObject_GetArray(RedJsonObjectHandle hObj, char * szKey)
+RedJsonArray RedJsonObject_GetArray(RedJsonObject hObj, char * szKey)
 {
-    // TODO
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetS(hObj->hash, szKey);
+    return jsonVal->val.hArray;
 }
-bool RedJsonObject_GetBoolean(RedJsonObjectHandle hObj, char * szKey);
+bool RedJsonObject_GetBoolean(RedJsonObject hObj, char * szKey)
+{
+    RedJsonValue jsonVal;
+    jsonVal = RedHash_GetS(hObj->hash, szKey);
+    return jsonVal->val.boolean;
+}
 
-bool RedJsonObject_IsValueString(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_IsValueString(RedJsonObject hObj, char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_STRING;
 }
-bool RedJsonObject_IsValueNumber(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_IsValueNumber(RedJsonObject hObj, char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_NUMBER;
 }
-bool RedJsonObject_IsValueObject(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_IsValueObject(RedJsonObject hObj, char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_OBJECT;
 }
-bool RedJsonObject_IsValueArray(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_IsValueArray(RedJsonObject hObj, char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_ARRAY;
 }
-bool RedJsonObject_IsValueBoolean(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_IsValueBoolean(RedJsonObject hObj, char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_BOOLEAN;
 }
-bool RedJsonObject_IsValueNull(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_IsValueNull(RedJsonObject hObj, char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_NULL;
 }
 
-void RedJsonObject_Unset(RedJsonObjectHandle hObj, char * szKey)
+void RedJsonObject_Unset(RedJsonObject hObj, char * szKey)
 {
     // TODO
 }
-bool RedJsonObject_HasKey(RedJsonObjectHandle hObj, char * szKey)
+bool RedJsonObject_HasKey(RedJsonObject hObj, char * szKey)
 {
-    return _ZObjHash_has(hObj, szKey);
+    return RedHash_HasKeyS(hObj->hash, szKey);
 }
 
-RedJsonArrayHandle RedJsonArray_New()
+RedJsonArray RedJsonArray_New()
 {
-    RedJsonArrayHandle hNew;
-    hNew = malloc(sizeof(RedJsonArrayHandle));
+    RedJsonArray hNew;
+    hNew = malloc(sizeof(RedJsonArray));
     hNew->items = ZARRAY_NEW(RedJsonValue, 0);
-    hNew->sz = strdup(sz);
-    Ref_Init(hNew, _RedJsonValue_Free);
+    hNew->refcnt = 1;
     return hNew;
 }
 
-RedJsonArrayHandle RedJsonArray_NumItems(RedJsonArrayHandle hArray)
+RedJsonArray RedJsonArray_NumItems(RedJsonArray hArray)
 {
-    return ZARRAY_NUM_ITEMS(hArray->items);
+    /*return ZARRAY_NUM_ITEMS(hArray->items);*/
+    return NULL;
 }
 
-void RedJsonArray_Append(RedJsonArrayHandle hArray, RedJsonValueHandle hVal)
+void RedJsonArray_Append(RedJsonArray hArray, RedJsonValue hVal)
 {
-    ZARRAY_APPEND(hArray->items, hVal)
+    ZARRAY_APPEND(hArray->items, hVal);
 }
-void RedJsonArray_AppendString(RedJsonArrayHandle hArray, char * szVal)
+void RedJsonArray_AppendString(RedJsonArray hArray, char * szVal)
 {
-    RedJsonValueHandle hVal;
+    RedJsonValue hVal;
     hVal = RedJsonValue_FromString(szVal);
     ZARRAY_APPEND(hArray->items, hVal);
 }
-void RedJsonArray_AppendNumber(RedJsonArrayHandle hArray, double val);
+void RedJsonArray_AppendNumber(RedJsonArray hArray, double val)
 {
-    RedJsonValueHandle hVal;
+    RedJsonValue hVal;
     hVal = RedJsonValue_FromNumber(val);
     ZARRAY_APPEND(hArray->items, hVal);
 }
-void RedJsonArray_AppendObject(RedJsonArrayHandle hArray, RedJsonObjectHandle hObj);
+void RedJsonArray_AppendObject(RedJsonArray hArray, RedJsonObject hObj)
 {
-    RedJsonValueHandle hVal;
+    RedJsonValue hVal;
     hVal = RedJsonValue_FromObject(hObj);
     ZARRAY_APPEND(hArray->items, hVal);
 }
-void RedJsonArray_AppendArray(RedJsonArrayHandle hArray, RedJsonArrayHandle hArray);
+void RedJsonArray_AppendArray(RedJsonArray jsonArray, RedJsonArray val)
 {
-    RedJsonValueHandle hVal;
-    hVal = RedJsonValue_FromArray(hArray);
-    ZARRAY_APPEND(hArray->items, hVal);
+    RedJsonValue jsonVal;
+    jsonVal = RedJsonValue_FromArray(val);
+    ZARRAY_APPEND(jsonArray->items, jsonVal);
 }
-void RedJsonArray_AppendBoolean(RedJsonArrayHandle hArray, bool val);
+void RedJsonArray_AppendBoolean(RedJsonArray hArray, bool val)
 {
-    RedJsonValueHandle hVal;
+    RedJsonValue hVal;
     hVal = RedJsonValue_FromBoolean(val);
     ZARRAY_APPEND(hArray->items, hVal);
 }
-void RedJsonArray_AppendNull(RedJsonArrayHandle hArray);
+void RedJsonArray_AppendNull(RedJsonArray hArray)
 {
-    RedJsonValueHandle hVal;
+    RedJsonValue hVal;
     hVal = RedJsonValue_Null();
     ZARRAY_APPEND(hArray->items, hVal);
 }
-bool RedJsonArray_IsEntryString(RedJsonArrayHandle hArray, unsigned idx)
+bool RedJsonArray_IsEntryString(RedJsonArray hArray, unsigned idx)
 {
-    return (hArray->items[idx].type == RED_JSON_VALUE_TYPE_STRING);
+    return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_STRING);
 }
-bool RedJsonArray_IsEntryNumber(RedJsonArrayHandle hArray, unsigned idx);
+bool RedJsonArray_IsEntryNumber(RedJsonArray hArray, unsigned idx)
 {
-    return (hArray->items[idx].type == RED_JSON_VALUE_TYPE_NUMBER);
+    return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_NUMBER);
 }
-bool RedJsonArray_IsEntryObject(RedJsonArrayHandle hArray, unsigned idx);
+bool RedJsonArray_IsEntryObject(RedJsonArray hArray, unsigned idx)
 {
-    return (hArray->items[idx].type == RED_JSON_VALUE_TYPE_OBJECT);
+    return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_OBJECT);
 }
-bool RedJsonArray_IsEntryArray(RedJsonArrayHandle hArray, unsigned idx);
+bool RedJsonArray_IsEntryArray(RedJsonArray hArray, unsigned idx)
 {
-    return (hArray->items[idx].type == RED_JSON_VALUE_TYPE_ARRAY);
+    return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_ARRAY);
 }
-bool RedJsonArray_IsEntryBoolean(RedJsonArrayHandle hArray, unsigned idx);
+bool RedJsonArray_IsEntryBoolean(RedJsonArray hArray, unsigned idx)
 {
-    return (hArray->items[idx].type == RED_JSON_VALUE_TYPE_BOOLEAN);
+    return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_BOOLEAN);
 }
-bool RedJsonArray_IsEntryNull(RedJsonArrayHandle hArray, unsigned idx);
+bool RedJsonArray_IsEntryNull(RedJsonArray hArray, unsigned idx)
 {
-    return (hArray->items[idx].type == RED_JSON_VALUE_TYPE_NULL);
+    return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_NULL);
 }
 
 
-_Value_ToJson(ZStringChain chain, RedJsonValueHandle hVal)
+_Value_ToJson(ZStringChain chain, RedJsonValue hVal)
 {
     switch (hVal->type)
     {
         case RED_JSON_VALUE_TYPE_STRING:
         {
             // TODO: escape
-            ZStringChain_AppendPrintf(chain, "\"%s\"", hVal->sz)
+            ZStringChain_AppendPrintf(chain, "\"%s\"", hVal->val.sz)
             break;
         }
         case RED_JSON_VALUE_TYPE_NUMBER:
         {
             // TODO: formatting?
-            ZStringChain_AppendPrintf(chain, "%f", hVal->number)
+            ZStringChain_AppendPrintf(chain, "%f", hVal->val.number)
             break;
         }
         case RED_JSON_VALUE_TYPE_OBJECT:
@@ -360,12 +378,12 @@ _Value_ToJson(ZStringChain chain, RedJsonValueHandle hVal)
         case RED_JSON_VALUE_TYPE_ARRAY:
         {
             ZStringChain_AppendChars(chain, "[");
-            ZARRAY(RedJsonValueHandle) items = hVal->hArray->items;
+            ZARRAY(RedJsonValue) items = hVal->val.hArray->items;
             int numItems = ZARRAY_NUM_ITEMS(items);
             for (i = 0; i < numItems; i++)
             {
-                RedJsonValueHandle hItemVal = items[i];
-                _Value_ToJson(chain, RedJsonValueHandle hVal);
+                RedJsonValue hItemVal = items[i];
+                _Value_ToJson(chain, RedJsonValue hVal);
                 if (i < numItems - 1)
                     ZStringChain_Append(",");
             }
@@ -380,9 +398,9 @@ _Value_ToJson(ZStringChain chain, RedJsonValueHandle hVal)
     }
 }
 
-char * RedJsonValue_ToJsonString(RedJsonValueHandle hVal)
+char * RedJsonValue_ToJsonString(RedJsonValue hVal)
 {
-    ZStringListHandle chain = ZStringList_New();
+    ZStringList chain = ZStringList_New();
     char * out;
     _Value_ToJson(chain, hVal);
     out = ZStringList_ToNewChars();
