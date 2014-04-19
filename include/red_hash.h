@@ -68,6 +68,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * RedHash - Represents a hash table.
@@ -89,6 +90,7 @@ typedef struct RedHashIterator_t
  */
 RedHash RedHash_New(unsigned numItemsHint);
 
+void RedHash_Free(RedHash hash);
 /*
  * RedHash_Insert - Insert a key-value pair (general key).
  *

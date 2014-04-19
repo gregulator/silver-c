@@ -1,5 +1,6 @@
 #include "red_hash.h"
 #include <string.h>
+#include <assert.h>
 
 typedef struct RedHashNodeHeader
 {
@@ -16,6 +17,8 @@ typedef struct RedHash_t
     unsigned numBuckets;
     RedHashNodeHeader ** buckets;
 } RedHash_t;
+
+#define _REDHASH_NODE_KEY(pnode) (&((pnode)->keyStart))
 
 static const unsigned _RedHashValidBucketCounts[] =
 {
@@ -55,7 +58,13 @@ static unsigned _RedHash_Hash(const void *keyobj, size_t keylen, unsigned numBuc
     return hash % numBuckets;
 }
 
-RedHash RedHash_Create(unsigned numItemsHint)
+static bool _RedHash_KeysMatch(unsigned size1, const void *key1, unsigned size2, const void *key2)
+{
+    return ((size1 == size2) && !strncmp(key1, key2, size1)) ? true: false;
+}
+
+
+RedHash RedHash_New(unsigned numItemsHint)
 {
     RedHash hNew;
     int i;
@@ -99,11 +108,13 @@ static void _RedHash_AutoResize(RedHash hash)
     {
         pNode = oldHash.buckets[i];
         while (pNode) {
+            unsigned newhashval;
+
             /* remove from old bucket */
             oldHash.buckets[i] = pNode->next;
 
             /* rehash */
-            unsigned newhashval = _HASH(&pNode->keyStart, hash->numBuckets);
+            newhashval = _RedHash_Hash(&pNode->keyStart, pNode->keySize, hash->numBuckets);
             pNode->next = hash->buckets[newhashval];
             hash->buckets[newhashval] = pNode;
 
@@ -154,11 +165,32 @@ void *
     while (pNode)
     {
         if (_RedHash_KeysMatch(
-                    pNode->keySize, _RedHash_NODE_KEY(pNode), keySize, key))
+                    pNode->keySize, _REDHASH_NODE_KEY(pNode), keySize, key))
             return pNode->value;
         pNode = pNode->next;
     };
     assert(!"RedHash_Get: key not found");
+}
+
+void *
+    RedHash_GetWithDefault(
+            const RedHash hash, 
+            const void *key, 
+            unsigned keySize,
+            void *defaultValue)
+{
+    RedHashNodeHeader *pNode;
+    unsigned hashval;
+    hashval = _RedHash_Hash(key, keySize, hash->numBuckets);
+    pNode = hash->buckets[hashval];
+    while (pNode)
+    {
+        if (_RedHash_KeysMatch(
+                    pNode->keySize, _REDHASH_NODE_KEY(pNode), keySize, key))
+            return pNode->value;
+        pNode = pNode->next;
+    };
+    return defaultValue;
 }
 
 void *
@@ -176,7 +208,7 @@ void *
     while (pNode)
     {
         if (_RedHash_KeysMatch(
-                    pNode->keySize, _RedHash_NODE_KEY(pNode), keySize, key))
+                    pNode->keySize, _REDHASH_NODE_KEY(pNode), keySize, key))
         {
             oldValue = pNode->value;
             pNode->value = value;
@@ -187,6 +219,35 @@ void *
     assert(!"RedHash_Update: key not found");
 }
 
+bool
+    RedHash_UpdateOrInsert(
+            const RedHash hash, 
+            void **replacedValue,
+            const void *key, 
+            unsigned keySize,
+            void *value)
+{
+    RedHashNodeHeader *pNode;
+    void *oldValue;
+    unsigned hashval;
+    hashval = _RedHash_Hash(key, keySize, hash->numBuckets);
+    pNode = hash->buckets[hashval];
+    while (pNode)
+    {
+        if (_RedHash_KeysMatch(
+                    pNode->keySize, _REDHASH_NODE_KEY(pNode), keySize, key))
+        {
+            oldValue = pNode->value;
+            pNode->value = value;
+            *replacedValue = oldValue;
+            return true;
+        }
+        pNode = pNode->next;
+    };
+    /* Key not found, do insert */
+    RedHash_Insert(hash, key, keySize, value);
+    return false;
+}
 
 bool RedHash_HasKey(const RedHash hash, const void *key, unsigned keySize)
 {
@@ -198,7 +259,7 @@ bool RedHash_HasKey(const RedHash hash, const void *key, unsigned keySize)
     while (pNode)
     {
         if (_RedHash_KeysMatch(
-                    pNode->keySize, _RedHash_NODE_KEY(pNode), keySize, key))
+                    pNode->keySize, _REDHASH_NODE_KEY(pNode), keySize, key))
             return true;
         pNode = pNode->next;
     };
