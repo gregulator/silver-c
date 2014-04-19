@@ -104,5 +104,5 @@ bool RedBloom_MayContain(RedBloom bloom, const void *pItem, size_t itemSize)
 
 bool RedBloom_MayContainS(RedBloom bloom, const char *szItem)
 {
-    RedBloom_MayContain(bloom, szItem, strlen(szItem) + 1);
+    return RedBloom_MayContain(bloom, szItem, strlen(szItem) + 1);
 }
