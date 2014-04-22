@@ -1,9 +1,9 @@
 /*
- * ZString - Easy-to-use interface for working with strings.
+ * RedString - Easy-to-use interface for working with strings.
  * 
- * A string is created from C-style null-terminated char * using the ZString_New
+ * A string is created from C-style null-terminated char * using the RedString_New
  * routine.  The characters of a string can be accessed using the
- * ZString_GetChars routine.
+ * RedString_GetChars routine.
  */
 
 #ifndef STRINGS_INCLUDED
@@ -12,15 +12,15 @@
 #include <stdbool.h>
 
 /*
- * A ZString represents a string of characters.
+ * A RedString represents a string of characters.
  */
-typedef struct ZString * ZStringHandle;
-typedef const struct ZString * ConstZStringHandle;
+typedef struct RedString_t * RedString;
+typedef const struct RedString_t * ConstRedString;
 
 /*
- * A ZStringList represents an array of strings.
+ * A RedStringList represents an array of strings.
  */
-typedef struct ZStringList * ZStringListHandle;
+typedef struct RedStringList_t * RedStringList;
 
 #if 0
 /*
@@ -28,81 +28,81 @@ typedef struct ZStringList * ZStringListHandle;
  * patterns are a seperate object type from strings for improved performance,
  * since they need to be compiled under-the-covers.
  */
-typedef void * RegExpHandle;
+typedef void * RegExp;
 
 /*
  * RegExpNew -- Creates and compiles a regular expression pattern.  Pattern
  *      should follow the POSIX extended regular expression format (see "man 7
  *      regex").
  */
-RegExpHandle RegExpNew(const char *pattern);
+RegExp RegExpNew(const char *pattern);
 
 /*
  * RegExpFree -- Frees resources associated with the compiled regex pattern.
  */
-void RegExpFree(RegExpHandle *phRegExp);
+void RegExpFree(RegExp *phRegExp);
 #endif
 
 /*
- * ZString_New -- Create a ZString object from a null-terminated array of chars.
- *      This routine makes a copy of <src> and stores the copy in the ZString
+ * RedString_New -- Create a RedString object from a null-terminated array of chars.
+ *      This routine makes a copy of <src> and stores the copy in the RedString
  *      object.  If <src> is NULL or "" an empty string of length 0 is created.
  */
-ZStringHandle ZString_New(const char *src);
+RedString RedString_New(const char *src);
 
 /*
- * ZString_NewLength -- Create a ZString object from a null-terminated array of
+ * RedString_NewLength -- Create a RedString object from a null-terminated array of
  * chars, limited to at most <length> characters..
  *
- *      This routine makes a copy of <src> and stores the copy in the ZString
+ *      This routine makes a copy of <src> and stores the copy in the RedString
  *      object.  If <src> is NULL or "" an empty string of length 0 is created.
  */
-ZStringHandle ZString_NewLength(const char *src, unsigned length);
+RedString RedString_NewLength(const char *src, unsigned length);
 
 /*
- * ZString_NewPrintf -- Perform an snprintf and store the result in a newly
+ * RedString_NewPrintf -- Perform an snprintf and store the result in a newly
  *      allocated string.
  */
-ZStringHandle ZString_NewPrintf(const char *fmt, unsigned size, ...);
+RedString RedString_NewPrintf(const char *fmt, unsigned size, ...);
 
 /*
- * ZString_Free -- Frees a string's memory.
+ * RedString_Free -- Frees a string's memory.
  */
-void ZString_Free(ZStringHandle *phZString);
+void RedString_Free(RedString *phRedString);
 
 /*
- * ZString_Set -- Sets the contents of <hOut> to <in>.
+ * RedString_Set -- Sets the contents of <hOut> to <in>.
  */
-void ZString_Set(ZStringHandle hOut, const char *in);
+void RedString_Set(RedString hOut, const char *in);
 
 /*
- * ZString_Set -- Clears the contents of <hOut> by setting it to "\0".
+ * RedString_Set -- Clears the contents of <hOut> by setting it to "\0".
  */
-void ZString_Clear(ZStringHandle hOut);
+void RedString_Clear(RedString hOut);
 
 /*
- * ZString_Length -- Returns the number of characters in a string.
+ * RedString_Length -- Returns the number of characters in a string.
  */
-unsigned ZString_Length(const ZStringHandle hZString);
+unsigned RedString_Length(const RedString hRedString);
 
 /*
- * ZString_Bytes -- Returns the length in bytes of a string.
+ * RedString_Bytes -- Returns the length in bytes of a string.
  */
-unsigned ZString_Bytes(ZStringHandle hZString);
+unsigned RedString_Bytes(RedString hRedString);
 
 /*
- * ZString_GetChars -- Returns a C-style null-terminated array of chars for use
+ * RedString_GetChars -- Returns a C-style null-terminated array of chars for use
  *      in functions like "printf.  The returned pointer is only valid as long
- *      as no other ZString* calls are made using <hZString>.
+ *      as no other RedString* calls are made using <hRedString>.
  */
-const char * ZString_GetChars(const ZStringHandle hZString);
+const char * RedString_GetChars(const RedString hRedString);
 
 /*
- * ZString_Copy -- Sets <hResult> to contain a copy of <hSrc>.  The previous
+ * RedString_Copy -- Sets <hResult> to contain a copy of <hSrc>.  The previous
  *      contents of <hResult> are discarded.  Does nothing if hSrc and hResult
  *      are the same.
  */
-void ZString_Copy(ZStringHandle hResult, const ZStringHandle hSrc);
+void RedString_Copy(RedString hResult, const RedString hSrc);
 
 enum
 {
@@ -114,150 +114,150 @@ enum
 };
 
 /* 
- * ZString_Compare -- Compares two strings.  Returns 0 if the strings match.
- *      Returns -1 if <hZStringA> is less than <hZStringB>.  Returns 1 if
- *      <hZStringA> is greater than <hZStringA>.  <stringComparisonFlags> must be
+ * RedString_Compare -- Compares two strings.  Returns 0 if the strings match.
+ *      Returns -1 if <hRedStringA> is less than <hRedStringB>.  Returns 1 if
+ *      <hRedStringA> is greater than <hRedStringA>.  <stringComparisonFlags> must be
  *      the bitwise OR of zero or more STRING_COMPARE_* values, and they affect
  *      the comparison as described above.
  */
-int ZString_Compare(
-        const ZStringHandle hZStringA, 
-        const ZStringHandle hZStringB,
+int RedString_Compare(
+        const RedString hRedStringA, 
+        const RedString hRedStringB,
         unsigned stringComparisonFlags);
 
 /*
- * ZStringCompareChars - Same as ZStringCompare but with (char *)s.
+ * RedStringCompareChars - Same as RedStringCompare but with (char *)s.
  */
-int ZString_CompareChars(
+int RedString_CompareChars(
         const char * strA, 
         const char * strB,
         unsigned stringComparisonFlags);
 
 /* 
- * ZString_ContainsChars -- Returns True if <hHaystack> contains the characters
+ * RedString_ContainsChars -- Returns True if <hHaystack> contains the characters
  *      of <needle> as a substring.  Returns False otherwise.
  */
-bool ZString_ContainsChars(ConstZStringHandle hHaystack, const char *needle);
+bool RedString_ContainsChars(ConstRedString hHaystack, const char *needle);
 
 /*
- * ZString_BeginsWith -- Returns True if <hZString> begins with the characters of
+ * RedString_BeginsWith -- Returns True if <hRedString> begins with the characters of
  *      <needle>.
  */
-bool ZString_StartsWith(ConstZStringHandle hZString, const char *needle);
+bool RedString_StartsWith(ConstRedString hRedString, const char *needle);
 
-/* ZString_Search -- Returns position of first occurance of <c> in <hHaystack>,
+/* RedString_Search -- Returns position of first occurance of <c> in <hHaystack>,
  *      or -1 if it is not found.
  */
-int ZString_Search(ConstZStringHandle hHaystack, const char c);
+int RedString_Search(ConstRedString hHaystack, const char c);
 
 /*
- * ZString_Trim -- Removes whitespace from the left and right sides of <hZString>.
+ * RedString_Trim -- Removes whitespace from the left and right sides of <hRedString>.
  */
-void ZString_Trim(ZStringHandle hZString);
+void RedString_Trim(RedString hRedString);
 
 /*
- * ZString_RemoveFloat -- Read a floating-point number from the beginning of
- *      <hZString>, remove it from <hZString>, and return it. */
-float ZString_RemoveFloat(ZStringHandle hZString);
+ * RedString_RemoveFloat -- Read a floating-point number from the beginning of
+ *      <hRedString>, remove it from <hRedString>, and return it. */
+float RedString_RemoveFloat(RedString hRedString);
 
 /*
- * ZString_FirstNonWhitespaceChar -- Returns the first non-whitespace character
- *      of <hZString>.
+ * RedString_FirstNonWhitespaceChar -- Returns the first non-whitespace character
+ *      of <hRedString>.
  */
-char ZString_FirstNonWhitespaceChar(ConstZStringHandle hZString);
+char RedString_FirstNonWhitespaceChar(ConstRedString hRedString);
 
 /*
- * ZString_SubString -- Sets <hResult> to contain a substring of <hSrc>
+ * RedString_SubString -- Sets <hResult> to contain a substring of <hSrc>
  *      (discarding <hResult>'s contents).  <start> and <end> specify the
  *      inclusive range of characters to copy.  
  *
  *      0 indicates the first character in the string.
- *      (ZString_Length(hSrc) - 1) is the last character in the string.
+ *      (RedString_Length(hSrc) - 1) is the last character in the string.
  *
  *      Negative values can be used to count backwards starting with the end of
  *      the string.
  *
  *      -1 indicates the last character in the string.
- *      -(ZString_Length(hSrc)) indicates the first character in the string. 
+ *      -(RedString_Length(hSrc)) indicates the first character in the string. 
  * 
  *      If <start> or <end> are outside the string, only characters that fall
  *      within the string are copied.  For example:
  *      
  *          // This code sets hDest to "Hell".
- *          ZStringHandle hSrc = ZString_New("Hello");
- *          ZStringHandle hDest = ZString_New(NULL);
- *          ZStringSubString(hDest, hSrc, -7, -2);
+ *          RedString hSrc = RedString_New("Hello");
+ *          RedString hDest = RedString_New(NULL);
+ *          RedStringSubString(hDest, hSrc, -7, -2);
  *
  *      If <end> comes before <start>, the result is the empty string.
  *
  *      It is allowed for hResult to equal hSrc.
  */
-void ZString_SubString(
-        ZStringHandle hResult, 
-        const ZStringHandle hSrc, 
+void RedString_SubString(
+        RedString hResult, 
+        const RedString hSrc, 
         int start, 
         int end);
 
-unsigned ZString_ToU32(ConstZStringHandle hZString);
+unsigned RedString_ToU32(ConstRedString hRedString);
 
 /*
- * ZString_Reverse -- Reverses the contents of <hZString> in place.
+ * RedString_Reverse -- Reverses the contents of <hRedString> in place.
  */
-void ZString_Reverse(ZStringHandle hZString);
+void RedString_Reverse(RedString hRedString);
 
 typedef enum
 {
     STRING_CASE_UPPER,
     STRING_CASE_LOWER,
-} ZStringCase; 
+} RedStringCase; 
 
 /* 
- * ZString_CaseConvert -- Changes the case of <hZString> in place.
+ * RedString_CaseConvert -- Changes the case of <hRedString> in place.
  */
-void ZString_CaseConvert(ZStringHandle hZString, ZStringCase newCase);
+void RedString_CaseConvert(RedString hRedString, RedStringCase newCase);
 
 /*
- * ZString_Append -- Adds <hAppend> to the end of <hOriginal>.
+ * RedString_Append -- Adds <hAppend> to the end of <hOriginal>.
  */
-void ZString_Append(ZStringHandle hOriginal, const ZStringHandle hAppend);
+void RedString_Append(RedString hOriginal, const RedString hAppend);
 
 /*
- * ZString_AppendChars -- Adds NULL-terminated string <pAppend> to the end of
+ * RedString_AppendChars -- Adds NULL-terminated string <pAppend> to the end of
  *      <hOriginal>.
  */
-void ZString_AppendChars(ZStringHandle hOriginal, const char * pAppend);
+void RedString_AppendChars(RedString hOriginal, const char * pAppend);
 
 /*
- * ZString_AppendPrintf -- Adds <hAppend> to the end of <hOriginal>.
+ * RedString_AppendPrintf -- Adds <hAppend> to the end of <hOriginal>.
  */
-void ZString_AppendPrintf(ZStringHandle hOriginal, const char *fmt, unsigned size, ...);
+void RedString_AppendPrintf(RedString hOriginal, const char *fmt, unsigned size, ...);
 
 /*
- * ZString_RemoveToChar -- Remove all characters in <hZString> to the left of (and
+ * RedString_RemoveToChar -- Remove all characters in <hRedString> to the left of (and
  *      including) the first occurance of <c>.  If <c> does not appear in
- *      <hZString>, this clears the string.
+ *      <hRedString>, this clears the string.
  */
-void ZString_RemoveToChar(ZStringHandle hZString, char c);
+void RedString_RemoveToChar(RedString hRedString, char c);
 
 /*
- * ZString_Hash -- Compute a hash string from <hSrc> and store it in <hResult>.
+ * RedString_Hash -- Compute a hash string from <hSrc> and store it in <hResult>.
  *      It is valid for <hResult> and <hSrc> to be the same string.
  *
  * TODO: Let caller choose hash type (SHA1, etc)
  */
-void ZString_Hash(ZStringHandle hResult, ConstZStringHandle hSrc);
+void RedString_Hash(RedString hResult, ConstRedString hSrc);
 
 /*
- * ZString_Rot13 -- Rot13 encryption/decryption.  Rot13 is extremely weak
+ * RedString_Rot13 -- Rot13 encryption/decryption.  Rot13 is extremely weak
  *      encryption and should not be used in situations where security is a
  *      real concern.  <hResult> and <hOriginal> can be the same string.
  *
  *      Note: g? in VIM will apply Rot13 encryption/decryption.
  */
-void ZString_Rot13(ZStringHandle hResult, ZStringHandle hOriginal);
+void RedString_Rot13(RedString hResult, RedString hOriginal);
 
 /*
- * ZString_Split -- Creates a new ZStringList object by splitting <hZString> into
+ * RedString_Split -- Creates a new RedStringList object by splitting <hRedString> into
  *      several smaller strings.  The <delimeter> character determines where
  *      the boundaries are, and all <delimeter> characters are removed.
  *
@@ -274,74 +274,80 @@ void ZString_Rot13(ZStringHandle hResult, ZStringHandle hOriginal);
  *      Use '\n' for <delimeter> to split a multi-line string into individual
  *      lines.
  *
- *      The returned ZStringList object must be freed with ZString_ListFree() when
+ *      The returned RedStringList object must be freed with RedString_ListFree() when
  *      you are finished using it.  The individual strings of the may be
- *      modified (ie, with ZStringAppend, ZStringReverse, etc), but MUST NOT be
- *      freed with ZStringFree.
+ *      modified (ie, with RedStringAppend, RedStringReverse, etc), but MUST NOT be
+ *      freed with RedStringFree.
  */
-ZStringListHandle ZString_Split(ZStringHandle hZString, char delimiter);
+RedStringList RedString_Split(RedString hRedString, char delimiter);
 
 /*
- * ZStringList_NumZStrings -- Returns the number of strings in <hList>.
+ * RedStringList_NumRedStrings -- Returns the number of strings in <hList>.
  */
-unsigned ZStringList_NumStrings(ZStringListHandle hList);
+unsigned RedStringList_NumStrings(RedStringList hList);
 
 /*
- * ZStringList_GetString -- Returns the string in position <idx> of <hList>.
+ * RedStringList_GetString -- Returns the string in position <idx> of <hList>.
  *      Will ASSERT if <idx> is greater than or equal to the number of strings
  *      in <hList>.
  *
- *      The ZStringHandles returned by this routine must never be individually
- *      freed.  Instead, use ZStringList_Free to free the whole list when you
+ *      The RedStrings returned by this routine must never be individually
+ *      freed.  Instead, use RedStringList_Free to free the whole list when you
  *      are finished with it.
  */
-ZStringHandle ZStringList_GetString(ZStringListHandle hList, unsigned idx);
+RedString RedStringList_GetString(RedStringList hList, unsigned idx);
 
-void ZStringList_Join(ZStringHandle hString, ZStringListHandle hList, const char *joiner);
+void RedStringList_Join(RedString hString, RedStringList hList, const char *joiner);
 
-#if 0
+void RedStringList_AppendPrintf(RedStringList list, const char *fmt, ...);
+
+void RedStringList_AppendChars(RedStringList list, const char *chars, ...);
+
+RedStringList RedStringList_New();
+
+char * RedStringList_ToNewChars(RedStringList list);
+
 /*
- * ZStringList_Free -- Frees all strings contained in <*phList> and all other
- *      resources associated with the list.  After calling ZStringList_Free you
+ * RedStringList_Free -- Frees all strings contained in <*phList> and all other
+ *      resources associated with the list.  After calling RedStringList_Free you
  *      may no longer use strings obtained from <*phList> or BAD THINGS will
  *      happen.
  */
-void ZStringList_Free(ZStringListHandle *phList);
+void RedStringList_Free(RedStringList list);
 
 typedef enum
 {
     STRING_REPLACE_IGNORE_CASE_FLAG,
     STRING_REPLACE_ALL,
-} ZStringReplaceFlags;
+} RedStringReplaceFlags;
 
 /*
- * ZStringReplace -- not yet supported
+ * RedStringReplace -- not yet supported
  */
-/*void ZStringReplace(
-        ZStringHandle hResult,
-        const ZStringHandle hSrc,
-        const ZStringHandle hFind,
-        const ZStringHandle hReplacement,
+/*void RedStringReplace(
+        RedString hResult,
+        const RedString hSrc,
+        const RedString hFind,
+        const RedString hReplacement,
         unsigned replaceFlags);*/
 
 /*
- * ZStringReplaceRegExp -- Not yet supported
+ * RedStringReplaceRegExp -- Not yet supported
  */
-/*void ZStringReplaceRegExp(
-        ZStringHandle hResult,
-        const ZStringHandle hSrc,
-        const RegExpHandle hRegExp,
-        const ZStringHandle hReplacement);*/
+/*void RedStringReplaceRegExp(
+        RedString hResult,
+        const RedString hSrc,
+        const RegExp hRegExp,
+        const RedString hReplacement);*/
 
 
-/* ZStringSplit -- Returns an array of words of <hZString>.  <hSeperator> If
+/* RedStringSplit -- Returns an array of words of <hRedString>.  <hSeperator> If
  * <hSeperator> is NULL, then the words are separated by arbitrary strings of
  * whitespace characters.
  */
-/*Array ZStringSplitChar(
-        ZString
-        const ZStringHandle hSeparator,
+/*Array RedStringSplitChar(
+        RedString
+        const RedString hSeparator,
         )*/
 
-#endif
 #endif // STRINGS_INCLUDED

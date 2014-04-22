@@ -1,6 +1,7 @@
 #include "red_json.h"
 
 #include "red_hash.h"
+#include "red_string.h"
 #include "../under_construction/zarray.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -354,20 +355,25 @@ bool RedJsonArray_IsEntryNull(RedJsonArray hArray, unsigned idx)
 }
 
 
-_Value_ToJson(ZStringChain chain, RedJsonValue hVal)
+void _Value_ToJson(RedStringList chain, RedJsonValue hVal)
 {
     switch (hVal->type)
     {
         case RED_JSON_VALUE_TYPE_STRING:
         {
             // TODO: escape
-            ZStringChain_AppendPrintf(chain, "\"%s\"", hVal->val.sz)
+            RedStringList_AppendPrintf(chain, "\"%s\"", hVal->val.sz);
             break;
         }
         case RED_JSON_VALUE_TYPE_NUMBER:
         {
             // TODO: formatting?
-            ZStringChain_AppendPrintf(chain, "%f", hVal->val.number)
+            RedStringList_AppendPrintf(chain, "%f", hVal->val.dbl);
+            break;
+        }
+        case RED_JSON_VALUE_TYPE_BOOLEAN:
+        {
+            // TODO
             break;
         }
         case RED_JSON_VALUE_TYPE_OBJECT:
@@ -377,22 +383,29 @@ _Value_ToJson(ZStringChain chain, RedJsonValue hVal)
         }
         case RED_JSON_VALUE_TYPE_ARRAY:
         {
-            ZStringChain_AppendChars(chain, "[");
-            ZARRAY(RedJsonValue) items = hVal->val.hArray->items;
-            int numItems = ZARRAY_NUM_ITEMS(items);
+            int i, numItems;
+            ZARRAY(RedJsonValue) items;
+            RedStringList_AppendChars(chain, "[");
+            items = (void *)hVal->val.hArray->items;
+            numItems = ZARRAY_NUM_ITEMS(items);
             for (i = 0; i < numItems; i++)
             {
-                RedJsonValue hItemVal = items[i];
-                _Value_ToJson(chain, RedJsonValue hVal);
+                RedJsonValue hItemVal = ZARRAY_AT(items, i);
+                _Value_ToJson(chain, hItemVal);
                 if (i < numItems - 1)
-                    ZStringChain_Append(",");
+                    RedStringList_AppendChars(chain, ",");
             }
-            ZStringChain_AppendChars(chain, "]");
+            RedStringList_AppendChars(chain, "]");
             break;
         }
         case RED_JSON_VALUE_TYPE_NULL:
         {
-            ZStringChain_AppendChars(chain, "null")
+            RedStringList_AppendChars(chain, "null");
+            break;
+        }
+        case RED_JSON_VALUE_TYPE_INVALID:
+        {
+            assert("!Unexpected JSON type!");
             break;
         }
     }
@@ -400,10 +413,10 @@ _Value_ToJson(ZStringChain chain, RedJsonValue hVal)
 
 char * RedJsonValue_ToJsonString(RedJsonValue hVal)
 {
-    ZStringList chain = ZStringList_New();
+    RedStringList chain = RedStringList_New();
     char * out;
     _Value_ToJson(chain, hVal);
-    out = ZStringList_ToNewChars();
-    ZStrinChain_Unref(chain);
+    out = RedStringList_ToNewChars(chain);
+    RedStringList_Free(chain);
     return out;
 }

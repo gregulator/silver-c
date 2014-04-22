@@ -4,35 +4,35 @@
  * Implements string interface.
  */
 
-#include "zstring.h"
+#include "red_string.h"
 #include "zarray.h"
-//#include "dsa/dynarray.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 /* TODO: is strlen correct with unicode characters? */
 #define _MIN(x, y) ((x) < (y) ? (x) : (y))
 #define _MAX(x, y) ((x) > (y) ? (x) : (y))
 
-typedef struct ZString
+typedef struct RedString_t
 {
-    // data consists of length chars followed by null-ter_MINator.
+    // data consists of length chars followed by null-terminator.
     char *data;
     unsigned length; /* in bytes? characters? */
-} ZString; 
+} RedString_t; 
 
-typedef struct ZStringList
+typedef struct RedStringList_t
 {
-    ZARRAY(ZStringHandle) array;
-} ZStringList;
+    ZARRAY(RedString) array;
+} RedStringList_t;
 
-ZStringHandle ZString_New(const char *src)
+RedString RedString_New(const char *src)
 {
-    ZStringHandle hNew = malloc(sizeof(ZString));
+    RedString hNew = malloc(sizeof(RedString_t));
     hNew->length = strlen(src);
     hNew->data = malloc(hNew->length + 1);
     strcpy(hNew->data, src);
@@ -40,9 +40,9 @@ ZStringHandle ZString_New(const char *src)
     return hNew;
 }
 
-ZStringHandle ZString_NewLength(const char *src, unsigned length)
+RedString RedString_NewLength(const char *src, unsigned length)
 {
-    ZStringHandle hNew = malloc(sizeof(ZString));
+    RedString hNew = malloc(sizeof(RedString_t));
     hNew->length = _MIN(length, strlen(src));
     hNew->data = malloc(hNew->length + 1);
     strncpy(hNew->data, src, length);
@@ -50,11 +50,11 @@ ZStringHandle ZString_NewLength(const char *src, unsigned length)
     return hNew;
 }
 
-ZStringHandle ZString_NewPrintf(const char *fmt, unsigned size, ...)
+RedString RedString_NewPrintf(const char *fmt, unsigned size, ...)
 {
     char * tmpResult;
     va_list args;
-    ZStringHandle hNew;
+    RedString hNew;
 
     tmpResult = malloc(size+1);
 
@@ -62,21 +62,21 @@ ZStringHandle ZString_NewPrintf(const char *fmt, unsigned size, ...)
     vsnprintf(tmpResult, (size_t)size, fmt, args);
     va_end(args);
 
-    hNew = ZString_New(tmpResult);
+    hNew = RedString_New(tmpResult);
 
     free(tmpResult);
 
     return hNew;
 }
 
-void ZString_Free(ZStringHandle *phZString)
+void RedString_Free(RedString *phRedString)
 {
-    free((*phZString)->data);
-    free(*phZString);
-    *phZString = NULL;
+    free((*phRedString)->data);
+    free(*phRedString);
+    *phRedString = NULL;
 }
 
-void ZString_Set(ZStringHandle hOut, const char *in)
+void RedString_Set(RedString hOut, const char *in)
 {
     free(hOut->data);
     hOut->length = strlen(in);
@@ -85,28 +85,28 @@ void ZString_Set(ZStringHandle hOut, const char *in)
     hOut->data[hOut->length] = 0;
 }
 
-void ZString_Clear(ZStringHandle hOut)
+void RedString_Clear(RedString hOut)
 {
-    ZString_Set(hOut, 0);
+    RedString_Set(hOut, 0);
 }
 
-unsigned ZString_Length(const ZStringHandle hZString)
+unsigned RedString_Length(const RedString hRedString)
 {
-    return hZString->length;
+    return hRedString->length;
 }
 
 /* TODO: unicode support */
-unsigned ZString_Bytes(const ZStringHandle hZString)
+unsigned RedString_Bytes(const RedString hRedString)
 {
-    return hZString->length + 1;
+    return hRedString->length + 1;
 }
 
-const char * ZString_GetChars(const ZStringHandle hZString)
+const char * RedString_GetChars(const RedString hRedString)
 {
-    return hZString->data;
+    return hRedString->data;
 }
 
-void ZString_Copy(ZStringHandle hResult, const ZStringHandle hSrc)
+void RedString_Copy(RedString hResult, const RedString hSrc)
 {
     if (hSrc == hResult)
         return;
@@ -118,21 +118,21 @@ void ZString_Copy(ZStringHandle hResult, const ZStringHandle hSrc)
     hResult->data[hResult->length] = 0;
 }
 
-void ZString_CaseConvert(ZStringHandle hZString, ZStringCase newCase)
+void RedString_CaseConvert(RedString hRedString, RedStringCase newCase)
 {
     unsigned i;
     switch (newCase)
     {
         case STRING_CASE_UPPER:
         {
-            for (i = 0; i < hZString->length; i++)
-                hZString->data[i] = toupper(hZString->data[i]);
+            for (i = 0; i < hRedString->length; i++)
+                hRedString->data[i] = toupper(hRedString->data[i]);
             break;
         }
         case STRING_CASE_LOWER:
         {
-            for (i = 0; i < hZString->length; i++)
-                hZString->data[i] = tolower(hZString->data[i]);
+            for (i = 0; i < hRedString->length; i++)
+                hRedString->data[i] = tolower(hRedString->data[i]);
             break;
         }
         default:
@@ -142,22 +142,22 @@ void ZString_CaseConvert(ZStringHandle hZString, ZStringCase newCase)
     }
 }
 
-int ZString_Compare(
-        const ZStringHandle hZStringA, 
-        const ZStringHandle hZStringB,
-        unsigned flags )
+int RedString_Compare(
+        const RedString hRedStringA, 
+        const RedString hRedStringB,
+        unsigned flags)
 {
     // not supported yet
     assert(!(flags & STRING_COMPARE_IGNORE_WHITESPACE_FLAG));
     
     if (flags & STRING_COMPARE_IGNORE_CASE_FLAG)
     {
-        return strcasecmp(hZStringA->data, hZStringB->data);
+        return strcasecmp(hRedStringA->data, hRedStringB->data);
     }
-    return strcmp(hZStringA->data, hZStringB->data);
+    return strcmp(hRedStringA->data, hRedStringB->data);
 }
 
-int ZString_CompareChars(
+int RedString_CompareChars(
         const char * strA, 
         const char * strB,
         unsigned flags )
@@ -172,7 +172,7 @@ int ZString_CompareChars(
     return strcmp(strA, strB);
 }
 
-bool ZString_ContainsChars(ConstZStringHandle hHaystack, const char *needle)
+bool RedString_ContainsChars(ConstRedString hHaystack, const char *needle)
 {
     if (strstr(hHaystack->data, needle))
     {
@@ -181,16 +181,16 @@ bool ZString_ContainsChars(ConstZStringHandle hHaystack, const char *needle)
     return false;
 }
 
-bool ZString_StartsWith(ConstZStringHandle hZString, const char *needle)
+bool RedString_StartsWith(ConstRedString hRedString, const char *needle)
 {
-    if (!memcmp(hZString->data, needle, strlen(needle)))
+    if (!memcmp(hRedString->data, needle, strlen(needle)))
     {
         return true;
     }
     return false;
 }
 
-int ZString_Search(ConstZStringHandle hHaystack, const char c)
+int RedString_Search(ConstRedString hHaystack, const char c)
 {
     char *p;
     char needle[2] = {c, 0};
@@ -202,20 +202,20 @@ int ZString_Search(ConstZStringHandle hHaystack, const char c)
     return p - hHaystack->data;
 }
 
-float ZString_RemoveFloat(ZStringHandle hZString)
+float RedString_RemoveFloat(RedString hRedString)
 {
     float out;
     char *endptr;
     
-    out = strtof(hZString->data, &endptr);
-    ZString_SubString(hZString, hZString, endptr - hZString->data, -1);
+    out = strtof(hRedString->data, &endptr);
+    RedString_SubString(hRedString, hRedString, endptr - hRedString->data, -1);
 
     return out;
 }
 
-char ZString_FirstNonWhitespaceChar(ConstZStringHandle hZString)
+char RedString_FirstNonWhitespaceChar(ConstRedString hRedString)
 {
-    char *s = (char *)hZString->data;
+    char *s = (char *)hRedString->data;
 
     while (*s && isspace(*s))
         s++;
@@ -224,10 +224,10 @@ char ZString_FirstNonWhitespaceChar(ConstZStringHandle hZString)
 
 }
 
-void ZString_Trim(ZStringHandle hZString)
+void RedString_Trim(RedString hRedString)
 {
-    char *s = (char *)hZString->data;
-    char *e = (char *)&hZString->data[hZString->length - 1];
+    char *s = (char *)hRedString->data;
+    char *e = (char *)&hRedString->data[hRedString->length - 1];
 
     while (*s && isspace(*s))
         s++;
@@ -235,12 +235,12 @@ void ZString_Trim(ZStringHandle hZString)
     while (*e && isspace(*e))
         e--;
 
-    ZString_SubString(hZString, hZString, s - hZString->data, e - hZString->data);
+    RedString_SubString(hRedString, hRedString, s - hRedString->data, e - hRedString->data);
 }
 
-void ZString_SubString(
-        ZStringHandle hResult, 
-        const ZStringHandle hSrc, 
+void RedString_SubString(
+        RedString hResult, 
+        const RedString hSrc, 
         int start, 
         int end)
 {
@@ -275,12 +275,12 @@ void ZString_SubString(
     return;
 }
 
-unsigned ZString_Tounsigned(ConstZStringHandle hZString)
+unsigned RedString_Tounsigned(ConstRedString hRedString)
 {
-    return (unsigned)atoi(hZString->data);
+    return (unsigned)atoi(hRedString->data);
 }
 
-void ZString_Append(ZStringHandle hOriginal, const ZStringHandle hAppend)
+void RedString_Append(RedString hOriginal, const RedString hAppend)
 {
     unsigned sumLength;
     sumLength = hOriginal->length + hAppend->length;
@@ -290,7 +290,7 @@ void ZString_Append(ZStringHandle hOriginal, const ZStringHandle hAppend)
     hOriginal->length = sumLength;
 }
 
-void ZString_AppendChars(ZStringHandle hOriginal, const char *pAppend)
+void RedString_AppendChars(RedString hOriginal, const char *pAppend)
 {
     unsigned sumLength;
     sumLength = hOriginal->length + strlen(pAppend);
@@ -300,7 +300,7 @@ void ZString_AppendChars(ZStringHandle hOriginal, const char *pAppend)
     hOriginal->length = sumLength;
 }
 
-void ZString_AppendPrintf(ZStringHandle hOriginal, const char *fmt, unsigned size, ...)
+void RedString_AppendPrintf(RedString hOriginal, const char *fmt, unsigned size, ...)
 {
     char * tmpResult;
     va_list args;
@@ -311,20 +311,20 @@ void ZString_AppendPrintf(ZStringHandle hOriginal, const char *fmt, unsigned siz
     vsnprintf(tmpResult, (size_t)size, fmt, args);
     va_end(args);
 
-    ZString_AppendChars(hOriginal, tmpResult);
+    RedString_AppendChars(hOriginal, tmpResult);
 
     free(tmpResult);
 }
 
-void ZString_RemoveToChar(ZStringHandle hZString, char c)
+void RedString_RemoveToChar(RedString hRedString, char c)
 {
-    char *s = (char *)hZString->data;
+    char *s = (char *)hRedString->data;
 
     while (*s && (*s != c))
         s++;
 
     s++;
-    ZString_SubString(hZString, hZString, s - hZString->data, -1);
+    RedString_SubString(hRedString, hRedString, s - hRedString->data, -1);
 }
 
 static uint64_t ror_13_bits(uint64_t in)
@@ -337,7 +337,7 @@ static uint64_t ror_13_bits(uint64_t in)
     
 }
 
-void ZString_Hash(ZStringHandle hResult, ConstZStringHandle hSrc)
+void RedString_Hash(RedString hResult, ConstRedString hSrc)
 {
     uint64_t sum = 0x1234567801234567ULL;
     unsigned i, j;
@@ -368,7 +368,7 @@ void ZString_Hash(ZStringHandle hResult, ConstZStringHandle hSrc)
     hResult->length = 13;
 }
 
-void ZString_Rot13(ZStringHandle hResult, ZStringHandle hOriginal)
+void RedString_Rot13(RedString hResult, RedString hOriginal)
 {
     unsigned i;
     char *newData;
@@ -396,69 +396,69 @@ void ZString_Rot13(ZStringHandle hResult, ZStringHandle hOriginal)
     free(newData);
 }
 
-ZStringListHandle ZString_Split(ZStringHandle hZString, char delimiter)
+RedStringList RedString_Split(RedString hRedString, char delimiter)
 {
-    char *start = hZString->data;
+    char *start = hRedString->data;
     char *end = start;
-    ZStringHandle hNewZString;
-    ZStringListHandle hNew;
+    RedString hNewRedString;
+    RedStringList hNew;
 
-    hNew = malloc(sizeof(ZStringList));
+    hNew = malloc(sizeof(RedStringList));
 
-    hNew->array = ZARRAY_NEW(ZStringHandle, 0);
+    hNew->array = ZARRAY_NEW(RedString, 0);
 
     while (*end)
     {
         if (*end == delimiter)
         {
-            hNewZString = ZString_NewLength(start, end - start);
-            ZARRAY_APPEND(hNew->array, hNewZString);
+            hNewRedString = RedString_NewLength(start, end - start);
+            ZARRAY_APPEND(hNew->array, hNewRedString);
             start = end + 1;
         }
         end++;
     }
-    hNewZString = ZString_NewLength(start, end - start);
-    ZARRAY_APPEND(hNew->array, hNewZString);
+    hNewRedString = RedString_NewLength(start, end - start);
+    ZARRAY_APPEND(hNew->array, hNewRedString);
 
     return hNew;
 }
 
-unsigned ZStringList_NumZStrings(ZStringListHandle hList)
+unsigned RedStringList_NumRedStrings(RedStringList hList)
 {
     return ZARRAY_NUM_ITEMS(hList->array);
 }
 
-ZStringHandle ZStringList_GetString(ZStringListHandle hList, unsigned idx)
+RedString RedStringList_GetString(RedStringList hList, unsigned idx)
 {
     return ZARRAY_AT(hList->array, idx);
 }
 
-void ZStringList_Join(ZStringHandle hString, ZStringListHandle hList, const char *joiner)
+void RedStringList_Join(RedString hString, RedStringList hList, const char *joiner)
 {
     /* TODO: optimize */
     int numItems = ZARRAY_NUM_ITEMS(hList->array);
     int i;
-    ZString_Clear(hString);
+    RedString_Clear(hString);
     for (i = 0; i < numItems; i++)
     {
-        ZString_Append(hString, ZARRAY_AT(hList->array, i));
+        RedString_Append(hString, ZARRAY_AT(hList->array, i));
         if (joiner && (i < numItems - 1))
-            ZString_AppendChars(hString, joiner);
+            RedString_AppendChars(hString, joiner);
     }
 }
 
 
 #if 0
-void ZStringList_Free(ZStringListHandle *phList)
+void RedStringList_Free(RedStringList *phList)
 {
-    unsigned numZStrings = DynArrayNumItems((*phList)->hArray);
-    ZStringHandle hZString;
+    unsigned numRedStrings = DynArrayNumItems((*phList)->hArray);
+    RedString hRedString;
     unsigned i;
 
-    for (i = 0; i < numZStrings; i++)
+    for (i = 0; i < numRedStrings; i++)
     {
-        hZString = DynArrayGet((*phList)->hArray, i);
-        ZString_Free(&hZString);
+        hRedString = DynArrayGet((*phList)->hArray, i);
+        RedString_Free(&hRedString);
     }
     DynArrayFree(&(*phList)->hArray);
     free(*phList);
