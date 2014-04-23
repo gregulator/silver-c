@@ -448,20 +448,73 @@ void RedStringList_Join(RedString hString, RedStringList hList, const char *join
 }
 
 
-#if 0
-void RedStringList_Free(RedStringList *phList)
+RedStringList RedStringList_New()
 {
-    unsigned numRedStrings = DynArrayNumItems((*phList)->hArray);
+    RedStringList newList;
+    newList = malloc(sizeof(RedStringList));
+    newList->array = ZARRAY_NEW(RedString, 0);
+    return newList;
+}
+
+void RedStringList_Free(RedStringList list)
+{
+    unsigned numRedStrings = ZARRAY_NUM_ITEMS(list->array);
     RedString hRedString;
     unsigned i;
 
     for (i = 0; i < numRedStrings; i++)
     {
-        hRedString = DynArrayGet((*phList)->hArray, i);
+        hRedString = ZARRAY_AT(list->array, i);
         RedString_Free(&hRedString);
     }
-    DynArrayFree(&(*phList)->hArray);
-    free(*phList);
-    *phList = NULL;
+    ZARRAY_FREE(list->array);
+    free(list);
 }
-#endif
+
+void RedStringList_AppendChars(RedStringList list, const char *chars)
+{
+    RedString newString;
+    newString = RedString_New(chars);
+    ZARRAY_APPEND(list->array, newString);
+}
+
+void RedStringList_AppendPrintf(RedStringList list, const char *fmt, ...)
+{
+    char * tmpResult;
+    va_list args;
+    int len;
+    RedString newString;
+
+    va_start(args, fmt);
+    len = vsnprintf(NULL, 0, fmt, args);
+    va_end(args);
+
+    tmpResult = malloc(len+1);
+
+    va_start(args, fmt);
+    vsprintf(tmpResult, fmt, args);
+    va_end(args);
+
+    newString = RedString_New(tmpResult);
+
+    ZARRAY_APPEND(list->array, newString);
+    free(tmpResult);
+}
+
+char *RedString_ToNewChars(RedString s)
+{
+    char *out = calloc(1, s->length+1);
+    strncpy(out, s->data, s->length);
+    return out;
+}
+
+char * RedStringList_ToNewChars(RedStringList hList)
+{
+    RedString s;
+    char *out;
+    s = RedString_New(NULL);
+    RedStringList_Join(s, hList, NULL);
+    out = RedString_ToNewChars(s);
+    RedString_Free(&s);
+    return out;
+}

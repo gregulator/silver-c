@@ -242,7 +242,6 @@ int main(int argc, const char *argv[])
 
     /* Test creation & destruction */
     {
-        int i;
         RedBloom bloom = RedBloom_New(100, 0.01);
         RedTest_Verify(suite, "Create bloom filter", (bloom != NULL));
         RedBloom_Free(bloom);

@@ -239,6 +239,8 @@ void RedString_AppendPrintf(RedString hOriginal, const char *fmt, unsigned size,
  */
 void RedString_RemoveToChar(RedString hRedString, char c);
 
+char * RedString_ToNewChars(RedString s);
+
 /*
  * RedString_Hash -- Compute a hash string from <hSrc> and store it in <hResult>.
  *      It is valid for <hResult> and <hSrc> to be the same string.
@@ -301,7 +303,7 @@ void RedStringList_Join(RedString hString, RedStringList hList, const char *join
 
 void RedStringList_AppendPrintf(RedStringList list, const char *fmt, ...);
 
-void RedStringList_AppendChars(RedStringList list, const char *chars, ...);
+void RedStringList_AppendChars(RedStringList list, const char *chars);
 
 RedStringList RedStringList_New();
 
