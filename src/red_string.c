@@ -36,7 +36,7 @@ RedString RedString_New(const char *src)
     hNew->length = src ? strlen(src) : 0;
     hNew->data = malloc(hNew->length + 1);
     if (src)
-        strcpy(hNew->data, src);
+        strncpy(hNew->data, src, hNew->length);
     hNew->data[hNew->length] = 0;
     return hNew;
 }
@@ -44,9 +44,10 @@ RedString RedString_New(const char *src)
 RedString RedString_NewLength(const char *src, unsigned length)
 {
     RedString hNew = malloc(sizeof(RedString_t));
-    hNew->length = _MIN(length, strlen(src));
+    hNew->length = src ? _MIN(length, strlen(src)) : 0;
     hNew->data = malloc(hNew->length + 1);
-    strncpy(hNew->data, src, length);
+    if (src)
+        strncpy(hNew->data, src, hNew->length);
     hNew->data[hNew->length] = 0;
     return hNew;
 }
@@ -60,7 +61,7 @@ RedString RedString_NewPrintf(const char *fmt, unsigned size, ...)
     tmpResult = malloc(size+1);
 
     va_start(args, size);
-    vsnprintf(tmpResult, (size_t)size, fmt, args);
+    vsnprintf(tmpResult, (size_t)(size + 1), fmt, args);
     va_end(args);
 
     hNew = RedString_New(tmpResult);
@@ -70,19 +71,22 @@ RedString RedString_NewPrintf(const char *fmt, unsigned size, ...)
     return hNew;
 }
 
-void RedString_Free(RedString *phRedString)
+void RedString_Free(RedString s)
 {
-    free((*phRedString)->data);
-    free(*phRedString);
-    *phRedString = NULL;
+    if (s)
+    {
+        free(s->data);
+        free(s);
+    }
 }
 
 void RedString_Set(RedString hOut, const char *in)
 {
     free(hOut->data);
-    hOut->length = strlen(in);
+    hOut->length = in ? strlen(in) : 0;
     hOut->data = malloc(hOut->length + 1);
-    strcpy(hOut->data, in);
+    if (in)
+        strcpy(hOut->data, in);
     hOut->data[hOut->length] = 0;
 }
 
@@ -468,7 +472,7 @@ void RedStringList_Free(RedStringList list)
     for (i = 0; i < numRedStrings; i++)
     {
         hRedString = ZARRAY_AT(list->array, i);
-        RedString_Free(&hRedString);
+        RedString_Free(hRedString);
     }
     ZARRAY_FREE(list->array);
     free(list);
@@ -518,6 +522,6 @@ char * RedStringList_ToNewChars(RedStringList hList)
     s = RedString_New(NULL);
     RedStringList_Join(s, hList, NULL);
     out = RedString_ToNewChars(s);
-    RedString_Free(&s);
+    RedString_Free(s);
     return out;
 }

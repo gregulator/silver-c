@@ -65,7 +65,7 @@ RedTest RedTest_Begin(
     if (!suite)
         return NULL;
 
-    suite->testName = calloc(1, strlen(testname));
+    suite->testName = calloc(1, strlen(testname) + 1);
     strcpy(suite->testName, testname);
     if (!suite->testName)
     {

@@ -68,10 +68,11 @@ RedString RedString_NewPrintf(const char *fmt, unsigned size, ...);
 /*
  * RedString_Free -- Frees a string's memory.
  */
-void RedString_Free(RedString *phRedString);
+void RedString_Free(RedString s);
 
 /*
- * RedString_Set -- Sets the contents of <hOut> to <in>.
+ * RedString_Set -- Sets the contents of <hOut> to <in>.  If <in> is NULL,
+ * clears the contents of <hOut> by setting it to "\0".
  */
 void RedString_Set(RedString hOut, const char *in);
 
