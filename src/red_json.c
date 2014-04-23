@@ -77,7 +77,7 @@ RedJsonValue RedJsonValue_FromArray(RedJsonArray hArray)
 {
     RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue_t));
-    hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
+    hNew->type = RED_JSON_VALUE_TYPE_ARRAY;
     hNew->val.hArray = REF(hArray);
     hNew->refcnt = 0;
     return hNew;
@@ -405,7 +405,7 @@ void _Value_ToJson(RedStringList chain, RedJsonValue hVal)
                 RedJsonValue hItemVal = ZARRAY_AT(items, i);
                 _Value_ToJson(chain, hItemVal);
                 if (i < numItems - 1)
-                    RedStringList_AppendChars(chain, ",");
+                    RedStringList_AppendChars(chain, ", ");
             }
             RedStringList_AppendChars(chain, "]");
             break;

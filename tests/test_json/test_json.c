@@ -27,15 +27,15 @@ int main(int argc, const char *argv[])
     RedTest suite = RedTest_Begin(argv[0], NULL, NULL);
 
     {
-        //RedJsonArray array;
+        RedJsonArray array;
         RedJsonObject obj;
         RedJsonValue val;
         char *out;
 
-        //array = RedJsonArray_New();
-        //RedJsonArray_AppendNumber(array, 1);
-        //RedJsonArray_AppendString(array, "Two");
-        //RedJsonArray_AppendNumber(array, 3.5);
+        array = RedJsonArray_New();
+        RedJsonArray_AppendNumber(array, 1);
+        RedJsonArray_AppendString(array, "Two");
+        RedJsonArray_AppendNumber(array, 3.5);
 
         obj = RedJsonObject_New();
         RedJsonObject_SetString(obj, "Moo", "Cow");
@@ -43,7 +43,7 @@ int main(int argc, const char *argv[])
         RedJsonObject_SetString(obj, "Fat", "Cat");
         RedJsonObject_SetBoolean(obj, "Awesome", true);
         RedJsonObject_SetNumber(obj, "Pi", 3.14159);
-        //RedJsonObject_SetArray(obj, "Numbers", array);
+        RedJsonObject_SetArray(obj, "Numbers", array);
 
         val = RedJsonValue_FromObject(obj);
 
