@@ -428,7 +428,7 @@ RedStringList RedString_Split(RedString hRedString, char delimiter)
     return hNew;
 }
 
-unsigned RedStringList_NumRedStrings(RedStringList hList)
+unsigned RedStringList_NumStrings(RedStringList hList)
 {
     return ZARRAY_NUM_ITEMS(hList->array);
 }
@@ -449,8 +449,6 @@ void RedStringList_Join(RedString hString, RedStringList hList, const char *join
         RedString_Append(hString, ZARRAY_AT(hList->array, i));
         if (joiner && (i < numItems - 1))
             RedString_AppendChars(hString, joiner);
-
-        printf("[%d] %s\n", hString->length, hString->data);
     }
 }
 
