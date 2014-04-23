@@ -33,9 +33,10 @@ typedef struct RedStringList_t
 RedString RedString_New(const char *src)
 {
     RedString hNew = malloc(sizeof(RedString_t));
-    hNew->length = strlen(src);
+    hNew->length = src ? strlen(src) : 0;
     hNew->data = malloc(hNew->length + 1);
-    strcpy(hNew->data, src);
+    if (src)
+        strcpy(hNew->data, src);
     hNew->data[hNew->length] = 0;
     return hNew;
 }
@@ -87,7 +88,7 @@ void RedString_Set(RedString hOut, const char *in)
 
 void RedString_Clear(RedString hOut)
 {
-    RedString_Set(hOut, 0);
+    RedString_Set(hOut, "");
 }
 
 unsigned RedString_Length(const RedString hRedString)
@@ -444,6 +445,8 @@ void RedStringList_Join(RedString hString, RedStringList hList, const char *join
         RedString_Append(hString, ZARRAY_AT(hList->array, i));
         if (joiner && (i < numItems - 1))
             RedString_AppendChars(hString, joiner);
+
+        printf("[%d] %s\n", hString->length, hString->data);
     }
 }
 

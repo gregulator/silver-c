@@ -76,7 +76,7 @@ void RedString_Free(RedString *phRedString);
 void RedString_Set(RedString hOut, const char *in);
 
 /*
- * RedString_Set -- Clears the contents of <hOut> by setting it to "\0".
+ * RedString_Clear -- Clears the contents of <hOut> by setting it to "\0".
  */
 void RedString_Clear(RedString hOut);
 

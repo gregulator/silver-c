@@ -87,7 +87,7 @@ RedJsonValue RedJsonValue_FromBoolean(bool val)
 {
     RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue));
-    hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
+    hNew->type = RED_JSON_VALUE_TYPE_BOOLEAN;
     hNew->val.boolean = val;
     hNew->refcnt = 0;
     return hNew;
@@ -368,17 +368,29 @@ void _Value_ToJson(RedStringList chain, RedJsonValue hVal)
         case RED_JSON_VALUE_TYPE_NUMBER:
         {
             // TODO: formatting?
-            RedStringList_AppendPrintf(chain, "%f", hVal->val.dbl);
+            RedStringList_AppendPrintf(chain, "%lf", hVal->val.dbl);
             break;
         }
         case RED_JSON_VALUE_TYPE_BOOLEAN:
         {
-            // TODO
+            RedStringList_AppendPrintf(chain, "%s", hVal->val.boolean ? "true" : "false");
             break;
         }
         case RED_JSON_VALUE_TYPE_OBJECT:
         {
-            // TODO
+            RedHashIterator_t iter;
+            const char *key;
+            size_t keySize;
+            const void *value;
+            RedStringList_AppendPrintf(chain, "{\n");
+            RED_HASH_FOREACH(iter, hVal->val.hObj->hash, (const void **)&key, &keySize, &value)
+            {
+                RedJsonValue val = (RedJsonValue)value;
+                RedStringList_AppendPrintf(chain, "\"%s\" : ", key);
+                _Value_ToJson(chain, val);
+                RedStringList_AppendPrintf(chain, ",\n");
+            }
+            RedStringList_AppendPrintf(chain, "}\n");
             break;
         }
         case RED_JSON_VALUE_TYPE_ARRAY:

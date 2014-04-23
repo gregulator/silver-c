@@ -118,4 +118,5 @@ bool RedJsonArray_IsEntryNull(RedJsonArray jsonArray, unsigned idx);
 
 char * RedJsonValue_ToJsonString(RedJsonValue jsonVal);
 
+RedJsonValue RedJsonValue_Parse(const char *text);
 #endif

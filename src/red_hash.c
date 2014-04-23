@@ -1,6 +1,7 @@
 #include "red_hash.h"
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 typedef struct RedHashNodeHeader
 {
@@ -274,4 +275,58 @@ unsigned RedHash_NumItems(const RedHash hash)
 bool RedHash_IsEmpty(const RedHash hash)
 {
     return (hash->numEntries == 0);
+}
+
+
+static void _RedHashIterator_Advance(RedHashIterator_t *pIter)
+{
+    RedHashNodeHeader *node = pIter->_node;
+    if (node->next)
+    {
+        pIter->_node = node->next;
+    }
+
+    pIter->_bucket++;
+    while (pIter->_bucket < pIter->_hash->numBuckets)
+    {
+        if (pIter->_hash->buckets[pIter->_bucket] != NULL)
+        {
+            pIter->_node = pIter->_hash->buckets[pIter->_bucket];
+            return;
+        }
+        pIter->_bucket++;
+    }
+    pIter->_node = NULL;
+}
+
+void RedHashIterator_Init(RedHashIterator_t *pIter, RedHash hash)
+{
+    pIter->_hash = hash; /* TODO: reference? */
+    pIter->_bucket = 0;
+    pIter->_node = NULL;
+
+    while (pIter->_bucket < pIter->_hash->numBuckets)
+    {
+        if (pIter->_hash->buckets[pIter->_bucket] != NULL)
+        {
+            pIter->_node = pIter->_hash->buckets[pIter->_bucket];
+            return;
+        }
+        pIter->_bucket++;
+    }
+}
+
+bool RedHashIterator_Advance(RedHashIterator_t *pIter, const void **ppOutKey, size_t *pOutKeySize, const void **ppOutValue)
+{
+    RedHashNodeHeader *node = pIter->_node;
+    if (!node)
+    {
+        return false;
+    }
+    *ppOutKey = &node->keyStart;
+    *pOutKeySize = node->keySize;
+    *ppOutValue = node->value;
+
+    _RedHashIterator_Advance(pIter);
+    return true;
 }

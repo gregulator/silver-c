@@ -77,6 +77,7 @@ typedef struct RedHash_t * RedHash;
 
 typedef struct RedHashIterator_t
 {
+    RedHash _hash;
     unsigned _bucket;
     void *_node;
 } RedHashIterator_t;
@@ -408,6 +409,6 @@ void RedHashIterator_Init(RedHashIterator_t *pIter, RedHash hash);
 bool RedHashIterator_Advance(RedHashIterator_t *pIter, const void **ppOutKey, size_t *pOutKeySize, const void **ppOutValue);
 
 #define RED_HASH_FOREACH(iter, hash, ppOutKey, pOutKeySize, ppOutValue) \
-    for (RedSetIter_Init(&(iter), (hash)); RedSetIter_Advance(&(iter), (ppOutKey), (pOutKeySize), (ppOutValue)))
+    for (RedHashIterator_Init(&(iter), (hash)); RedHashIterator_Advance(&(iter), (ppOutKey), (pOutKeySize), (ppOutValue)); )
 
 #endif
