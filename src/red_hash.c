@@ -69,7 +69,7 @@ RedHash RedHash_New(unsigned numItemsHint)
 {
     RedHash hNew;
     int i;
-    hNew = malloc(sizeof(RedHash));
+    hNew = malloc(sizeof(RedHash_t));
     hNew->numEntries = 0;
     i = 0;
     do

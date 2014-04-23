@@ -46,7 +46,7 @@ typedef struct RedJsonArray_t
 RedJsonValue RedJsonValue_FromString(char * sz)
 {
     RedJsonValue hNew;
-    hNew = malloc(sizeof(RedJsonValue));
+    hNew = malloc(sizeof(RedJsonValue_t));
     hNew->type = RED_JSON_VALUE_TYPE_STRING;
     hNew->val.sz = _StrDup(sz);
     hNew->refcnt = 0;
@@ -56,7 +56,7 @@ RedJsonValue RedJsonValue_FromString(char * sz)
 RedJsonValue RedJsonValue_FromNumber(double val)
 {
     RedJsonValue hNew;
-    hNew = malloc(sizeof(RedJsonValue));
+    hNew = malloc(sizeof(RedJsonValue_t));
     hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
     hNew->val.dbl = val;
     hNew->refcnt = 0;
@@ -66,7 +66,7 @@ RedJsonValue RedJsonValue_FromNumber(double val)
 RedJsonValue RedJsonValue_FromObject(RedJsonObject hObj)
 {
     RedJsonValue hNew;
-    hNew = malloc(sizeof(RedJsonValue));
+    hNew = malloc(sizeof(RedJsonValue_t));
     hNew->type = RED_JSON_VALUE_TYPE_OBJECT;
     hNew->val.hObj = REF(hObj);
     hNew->refcnt = 0;
@@ -76,7 +76,7 @@ RedJsonValue RedJsonValue_FromObject(RedJsonObject hObj)
 RedJsonValue RedJsonValue_FromArray(RedJsonArray hArray)
 {
     RedJsonValue hNew;
-    hNew = malloc(sizeof(RedJsonValue));
+    hNew = malloc(sizeof(RedJsonValue_t));
     hNew->type = RED_JSON_VALUE_TYPE_NUMBER;
     hNew->val.hArray = REF(hArray);
     hNew->refcnt = 0;
@@ -86,7 +86,7 @@ RedJsonValue RedJsonValue_FromArray(RedJsonArray hArray)
 RedJsonValue RedJsonValue_FromBoolean(bool val)
 {
     RedJsonValue hNew;
-    hNew = malloc(sizeof(RedJsonValue));
+    hNew = malloc(sizeof(RedJsonValue_t));
     hNew->type = RED_JSON_VALUE_TYPE_BOOLEAN;
     hNew->val.boolean = val;
     hNew->refcnt = 0;
@@ -96,7 +96,7 @@ RedJsonValue RedJsonValue_FromBoolean(bool val)
 RedJsonValue RedJsonValue_Null()
 {
     RedJsonValue hNew;
-    hNew = malloc(sizeof(RedJsonValue));
+    hNew = malloc(sizeof(RedJsonValue_t));
     hNew->type = RED_JSON_VALUE_TYPE_NULL;
     hNew->refcnt = 0;
     return hNew;
@@ -153,7 +153,7 @@ bool RedJsonValue_IsNull(RedJsonValue hVal)
 RedJsonObject RedJsonObject_New()
 {
     RedJsonObject jsonObj;
-    jsonObj = malloc(sizeof(RedJsonObject));
+    jsonObj = malloc(sizeof(RedJsonObject_t));
     jsonObj->hash = RedHash_New(0);
     jsonObj->refcnt = 1;
     return jsonObj;
@@ -277,7 +277,7 @@ bool RedJsonObject_HasKey(RedJsonObject hObj, char * szKey)
 RedJsonArray RedJsonArray_New()
 {
     RedJsonArray hNew;
-    hNew = malloc(sizeof(RedJsonArray));
+    hNew = malloc(sizeof(RedJsonArray_t));
     hNew->items = ZARRAY_NEW(RedJsonValue, 0);
     hNew->refcnt = 1;
     return hNew;
