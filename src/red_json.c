@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define REF(hObj) ((hObj)->refcnt++, (hObj))
 
@@ -432,3 +433,204 @@ char * RedJsonValue_ToJsonString(RedJsonValue hVal)
     RedStringList_Free(chain);
     return out;
 }
+
+
+typedef enum _JsonTokenEnum
+{
+    _JSON_TOKEN_OPEN_CURLY_BRACE,
+    _JSON_TOKEN_CLOSE_CURLY_BRACE,
+    _JSON_TOKEN_OPEN_SQUARE_BRACE,
+    _JSON_TOKEN_CLOSE_SQUARE_BRACE,
+    _JSON_TOKEN_COLON,
+    _JSON_TOKEN_COMMA,
+    _JSON_TOKEN_STRING,
+    _JSON_TOKEN_NUMBER,
+    _JSON_TOKEN_BOOL,
+    _JSON_TOKEN_NULL,
+} _JsonTokenEnum;
+
+typedef struct _JsonToken
+{
+    struct _JsonToken *next;
+    _JsonTokenEnum type;
+    union
+    {
+        bool valBool;
+        double valDbl;
+        char *valString;
+    } val;
+} _JsonToken;
+
+static _JsonToken * _EmitSimpleToken(_JsonToken *parent, _JsonTokenEnum type)
+{
+    switch (type)
+    {
+        case _JSON_TOKEN_OPEN_CURLY_BRACE:
+        case _JSON_TOKEN_CLOSE_CURLY_BRACE:
+        case _JSON_TOKEN_OPEN_SQUARE_BRACE:
+        case _JSON_TOKEN_CLOSE_SQUARE_BRACE:
+        case _JSON_TOKEN_COLON:
+        case _JSON_TOKEN_COMMA:
+        case _JSON_TOKEN_NULL:
+        {
+            _JsonToken *token = calloc(1, sizeof(_JsonToken));
+            if (token)
+            {
+                token->type = type;
+                if (parent)
+                    parent->next = token;
+            }
+            return token;
+        }
+        default:
+        {
+            assert(!"Bad token type in _EmitSimpleToken");
+            return NULL;
+        }
+    }
+}
+
+static _JsonToken * _EmitBoolToken(_JsonToken *parent, bool value)
+{
+    _JsonToken *token = calloc(1, sizeof(_JsonToken));
+    if (token)
+    {
+        token->type = _JSON_TOKEN_BOOL;
+        token->val.valBool = value;
+        if (parent)
+            parent->next = token;
+    }
+    return token;
+}
+
+/*static _JsonToken * _EmitNumberToken(_JsonToken *parent, double value)
+{
+    _JsonToken *token = calloc(1, sizeof(_JsonToken));
+    if (token)
+    {
+        token->type = _JSON_TOKEN_NUMBER;
+        token->val.valDbl = value;
+        if (parent)
+            parent->next = token;
+    }
+    return token;
+}*/
+
+static _JsonToken * _EmitStringToken(_JsonToken *parent, const char *stringStart, size_t stringLength)
+{
+    _JsonToken *token = calloc(1, sizeof(_JsonToken));
+    if (token)
+    {
+        token->type = _JSON_TOKEN_STRING;
+        token->val.valString = calloc(1, stringLength+1);
+        strncpy(token->val.valString, stringStart, stringLength);
+        if (parent)
+            parent->next = token;
+    }
+    return token;
+}
+
+RedJsonObject RedJson_Parse(const char *text)
+{
+    _JsonToken *tokens = NULL, *tail = NULL;
+    /* Tokenize */
+    while (*text)
+    {
+        switch (text[0])
+        {
+            case '{':
+                tail = _EmitSimpleToken(tail, _JSON_TOKEN_OPEN_CURLY_BRACE);
+                text++;
+                break;
+            case '}':
+                tail = _EmitSimpleToken(tail, _JSON_TOKEN_CLOSE_CURLY_BRACE);
+                text++;
+                break;
+            case '[':
+                tail = _EmitSimpleToken(tail, _JSON_TOKEN_OPEN_SQUARE_BRACE);
+                text++;
+                break;
+            case ']':
+                tail = _EmitSimpleToken(tail, _JSON_TOKEN_CLOSE_SQUARE_BRACE);
+                text++;
+                break;
+            case ',':
+                tail = _EmitSimpleToken(tail, _JSON_TOKEN_COMMA);
+                text++;
+                break;
+            case ':':
+                tail = _EmitSimpleToken(tail, _JSON_TOKEN_COLON);
+                text++;
+                break;
+            case 't':
+                if (!strncmp(text, "true", 4))
+                {
+                    tail = _EmitBoolToken(tail, true);
+                    text = &text[4];
+                }
+                else
+                {
+                    goto fail;
+                }
+                break;
+            case 'f':
+                if (!strncmp(text, "false", 5))
+                {
+                    tail = _EmitBoolToken(tail, false);
+                    text = &text[5];
+                }
+                else
+                {
+                    goto fail;
+                }
+                break;
+            case 'n':
+                /* TODO */
+                if (!strncmp(text, "null", 4))
+                {
+                    tail = _EmitSimpleToken(tail, _JSON_TOKEN_NULL);
+                    text = &text[4];
+                }
+                else
+                {
+                    goto fail;
+                }
+                break;
+            case '"':
+            {
+                // consume string
+                const char *stringStart = text + 1;
+                text = stringStart;
+                while (*text && *text != '"')
+                    text++;
+                tail = _EmitStringToken(tail, stringStart, text - stringStart);
+
+                /* TODO: handle end-of-input */
+                text++;
+                break;
+            }
+            default:
+            {
+                if (text[0] >= '0' || text[0] <= '9' || text[0] == '-')
+                {
+                    // TODO: consume number
+                }
+                else if (isspace(text[0]))
+                {
+                    text++;
+                }
+                break;
+            }
+        }
+        if (tail && !tokens)
+        {
+            /* keep track of first token */
+            tokens = tail;
+        }
+    }
+    return NULL;
+fail:
+    fprintf(stderr, "Failure parsing JSON!");
+    return NULL;
+}
+
