@@ -530,41 +530,204 @@ static _JsonToken * _EmitStringToken(_JsonToken *parent, const char *stringStart
     return token;
 }
 
+static RedJsonObject _ParseObject(_JsonToken **head);
+static RedJsonArray _ParseArray(_JsonToken **head);
+
+static RedJsonValue _ParseValue(_JsonToken **head)
+{
+    RedJsonValue val;
+    switch ((*head)->type)
+    {
+        case _JSON_TOKEN_OPEN_CURLY_BRACE:
+        {
+            RedJsonObject obj;
+            obj = _ParseObject(head);
+            /* TODO: error handling */
+            val = RedJsonValue_FromObject(obj);
+            return val;
+        }
+        case _JSON_TOKEN_OPEN_SQUARE_BRACE:
+        {
+            RedJsonArray array;
+            array = _ParseArray(head);
+            val = RedJsonValue_FromArray(array);
+            return val;
+        }
+        case _JSON_TOKEN_STRING:
+        {
+            char *sz;
+            sz = (*head)->val.valString;
+            val = RedJsonValue_FromString(sz);
+            *head = (*head)->next;
+            return val;
+        }
+        case _JSON_TOKEN_NUMBER:
+        {
+            double dbl;
+            dbl = (*head)->val.valDbl;
+            val = RedJsonValue_FromNumber(dbl);
+            *head = (*head)->next;
+            return val;
+        }
+        case _JSON_TOKEN_BOOL:
+        {
+            bool b;
+            b = (*head)->val.valBool;
+            val = RedJsonValue_FromBoolean(b);
+            *head = (*head)->next;
+            return val;
+        }
+        case _JSON_TOKEN_NULL:
+        {
+            *head = (*head)->next;
+            return RedJsonValue_Null();
+        }
+        default:
+        {
+            fprintf(stderr, "Value expected, got %d\n", (*head)->type);
+            return NULL;
+        }
+    }
+}
+
+static RedJsonArray _ParseArray(_JsonToken **head)
+{
+    RedJsonArray array;
+
+    array = RedJsonArray_New();
+
+    if ((*head)->type != _JSON_TOKEN_OPEN_SQUARE_BRACE)
+    {
+        fprintf(stderr, "'[' expected at start of array\n");
+        return NULL;
+    }
+    (*head) = (*head)->next;
+
+    while ((*head)->type != _JSON_TOKEN_CLOSE_SQUARE_BRACE)
+    {
+        RedJsonValue val;
+        /* consume value */
+        val = _ParseValue(head);
+        if (!val)
+        {
+            return NULL;
+        }
+        RedJsonArray_Append(array, val);
+
+        if ((*head)->type != _JSON_TOKEN_CLOSE_SQUARE_BRACE)
+        {
+            if ((*head)->type != _JSON_TOKEN_COMMA)
+            {
+                fprintf(stderr, "',' expected between array values %d %d\n", (*head)->type, (*head)->next->type);
+                return NULL;
+            }
+            (*head) = (*head)->next;
+        }
+    }
+    (*head) = (*head)->next;
+
+    return array;
+}
+
+static RedJsonObject _ParseObject(_JsonToken **head)
+{
+    RedJsonObject obj;
+    char *key;
+    obj = RedJsonObject_New();
+
+    /* consume { */
+    if ((*head)->type != _JSON_TOKEN_OPEN_CURLY_BRACE)
+    {
+        fprintf(stderr, "'{' expected at start of object\n");
+        return NULL;
+    }
+    (*head) = (*head)->next;
+
+    while ((*head)->type != _JSON_TOKEN_CLOSE_CURLY_BRACE)
+    {
+        RedJsonValue val;
+        /* consume KEY */
+        if ((*head)->type != _JSON_TOKEN_STRING)
+        {
+            fprintf(stderr, "'\"' expected at start of string key\n");
+            return NULL;
+        }
+        key = (*head)->val.valString;
+        (*head) = (*head)->next;
+
+        /* consume : */
+        if ((*head)->type != _JSON_TOKEN_COLON)
+        {
+            fprintf(stderr, "':' expected between key and value\n");
+            return NULL;
+        }
+        (*head) = (*head)->next;
+
+        val = _ParseValue(head);
+        if (!val)
+        {
+            return NULL;
+        }
+
+        if ((*head)->type != _JSON_TOKEN_CLOSE_CURLY_BRACE)
+        {
+            if ((*head)->type != _JSON_TOKEN_COMMA)
+            {
+                fprintf(stderr, "',' expected between object properties %d %d\n", (*head)->type, (*head)->next->type);
+                fprintf(stderr, "',' expected between object properties\n");
+                return NULL;
+            }
+            (*head) = (*head)->next;
+        }
+        RedJsonObject_Set(obj, key, val);
+    }
+    (*head) = (*head)->next;
+    return obj;
+}
+
 RedJsonObject RedJson_Parse(const char *text)
 {
     _JsonToken *tokens = NULL, *tail = NULL;
+    RedJsonObject out;
     /* Tokenize */
     while (*text)
     {
         switch (text[0])
         {
             case '{':
+                printf("{ emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_OPEN_CURLY_BRACE);
                 text++;
                 break;
             case '}':
+                printf("} emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_CLOSE_CURLY_BRACE);
                 text++;
                 break;
             case '[':
+                printf("[ emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_OPEN_SQUARE_BRACE);
                 text++;
                 break;
             case ']':
+                printf("] emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_CLOSE_SQUARE_BRACE);
                 text++;
                 break;
             case ',':
+                printf(", emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_COMMA);
                 text++;
                 break;
             case ':':
+                printf(": emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_COLON);
                 text++;
                 break;
             case 't':
                 if (!strncmp(text, "true", 4))
                 {
+                    printf("true emitted\n");
                     tail = _EmitBoolToken(tail, true);
                     text = &text[4];
                 }
@@ -576,6 +739,7 @@ RedJsonObject RedJson_Parse(const char *text)
             case 'f':
                 if (!strncmp(text, "false", 5))
                 {
+                    printf("false emitted\n");
                     tail = _EmitBoolToken(tail, false);
                     text = &text[5];
                 }
@@ -585,9 +749,9 @@ RedJsonObject RedJson_Parse(const char *text)
                 }
                 break;
             case 'n':
-                /* TODO */
                 if (!strncmp(text, "null", 4))
                 {
+                    printf("null emitted\n");
                     tail = _EmitSimpleToken(tail, _JSON_TOKEN_NULL);
                     text = &text[4];
                 }
@@ -602,7 +766,10 @@ RedJsonObject RedJson_Parse(const char *text)
                 const char *stringStart = text + 1;
                 text = stringStart;
                 while (*text && *text != '"')
+                {
                     text++;
+                }
+                printf("string emitted\n");
                 tail = _EmitStringToken(tail, stringStart, text - stringStart);
 
                 /* TODO: handle end-of-input */
@@ -611,7 +778,7 @@ RedJsonObject RedJson_Parse(const char *text)
             }
             default:
             {
-                if (text[0] >= '0' || text[0] <= '9' || text[0] == '-')
+                if ((text[0] >= '0' && text[0] <= '9') || text[0] == '-')
                 {
                     // TODO: consume number
                 }
@@ -628,7 +795,10 @@ RedJsonObject RedJson_Parse(const char *text)
             tokens = tail;
         }
     }
-    return NULL;
+
+    /* Parse into object tree */
+    out = _ParseObject(&tokens);
+    return out;
 fail:
     fprintf(stderr, "Failure parsing JSON!");
     return NULL;
