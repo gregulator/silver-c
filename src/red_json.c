@@ -330,6 +330,40 @@ void RedJsonArray_AppendNull(RedJsonArray hArray)
     hVal = RedJsonValue_Null();
     ZARRAY_APPEND(hArray->items, hVal);
 }
+RedJsonValue RedJsonArray_GetEntry(RedJsonArray jsonArray, unsigned idx)
+{
+    return ZARRAY_AT(jsonArray->items, idx);
+}
+char * RedJsonArray_GetEntryString(RedJsonArray jsonArray, unsigned idx)
+{
+    RedJsonValue val;
+    val = ZARRAY_AT(jsonArray->items, idx);
+    return val->val.sz;
+}
+double RedJsonArray_GetEntryNumber(RedJsonArray jsonArray, unsigned idx)
+{
+    RedJsonValue val;
+    val = ZARRAY_AT(jsonArray->items, idx);
+    return val->val.dbl;
+}
+RedJsonObject RedJsonArray_GetEntryObject(RedJsonArray jsonArray, unsigned idx)
+{
+    RedJsonValue val;
+    val = ZARRAY_AT(jsonArray->items, idx);
+    return val->val.hObj;
+}
+RedJsonArray RedJsonArray_GetEntryArray(RedJsonArray jsonArray, unsigned idx)
+{
+    RedJsonValue val;
+    val = ZARRAY_AT(jsonArray->items, idx);
+    return val->val.hArray;
+}
+bool RedJsonArray_GetEntryBoolean(RedJsonArray jsonArray, unsigned idx)
+{
+    RedJsonValue val;
+    val = ZARRAY_AT(jsonArray->items, idx);
+    return val->val.boolean;
+}
 bool RedJsonArray_IsEntryString(RedJsonArray hArray, unsigned idx)
 {
     return (ZARRAY_AT(hArray->items, idx)->type == RED_JSON_VALUE_TYPE_STRING);

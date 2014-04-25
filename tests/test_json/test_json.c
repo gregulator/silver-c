@@ -54,12 +54,12 @@ int main(int argc, const char *argv[])
     {
         const char *json = "{ \"cat\" : \"meow\", \"cow\" : [\"Moo\", \"MOOOO\"] }";
         RedJsonObject obj;
-        //RedJsonArray array;
+        RedJsonArray array;
         obj = RedJson_Parse(json);
         printf("%s\n", RedJsonObject_GetString(obj, "cat"));
-        //array = RedJsonObject_GetArray(obj, "cow");
-        /*printf("%s\n", RedJsonArray_GetEntryString(array, 0));
-        printf("%s\n", RedJsonArray_GetEntryString(array, 1)); */
+        array = RedJsonObject_GetArray(obj, "cow");
+        printf("%s\n", RedJsonArray_GetEntryString(array, 0));
+        printf("%s\n", RedJsonArray_GetEntryString(array, 1));
 
 
     }

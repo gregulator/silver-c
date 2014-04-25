@@ -102,7 +102,7 @@ void RedJsonArray_SetEntryArray(RedJsonArray jsonArray, unsigned idx, RedJsonArr
 void RedJsonArray_SetEntryBoolean(RedJsonArray jsonArray, unsigned idx, bool val);
 void RedJsonArray_SetEntryNull(RedJsonArray jsonArray, unsigned idx);
 
-RedJsonValue RedJsonArray_GetEntry(RedJsonArray jsonArray);
+RedJsonValue RedJsonArray_GetEntry(RedJsonArray jsonArray, unsigned idx);
 char * RedJsonArray_GetEntryString(RedJsonArray jsonArray, unsigned idx);
 double RedJsonArray_GetEntryNumber(RedJsonArray jsonArray, unsigned idx);
 RedJsonObject RedJsonArray_GetEntryObject(RedJsonArray jsonArray, unsigned idx);
