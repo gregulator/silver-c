@@ -57,30 +57,34 @@ bool RedJsonValue_IsNull(RedJsonValue jsonVal);
 
 RedJsonObject RedJsonObject_New();
 
-void RedJsonObject_Set(RedJsonObject jsonObj, char * szKey, RedJsonValue jsonVal);
-void RedJsonObject_SetString(RedJsonObject jsonObj, char * szKey, char *szVal);
-void RedJsonObject_SetNumber(RedJsonObject jsonObj, char * szKey, double val);
-void RedJsonObject_SetObject(RedJsonObject jsonObj, char * szKey, RedJsonObject jsonVal);
-void RedJsonObject_SetArray(RedJsonObject jsonObj, char * szKey, RedJsonArray jsonArray);
-void RedJsonObject_SetBoolean(RedJsonObject jsonObj, char * szKey, bool val);
+void RedJsonObject_Set(RedJsonObject jsonObj, const char * szKey, RedJsonValue jsonVal);
+void RedJsonObject_SetString(RedJsonObject jsonObj, const char * szKey, char *szVal);
+void RedJsonObject_SetNumber(RedJsonObject jsonObj, const char * szKey, double val);
+void RedJsonObject_SetObject(RedJsonObject jsonObj, const char * szKey, RedJsonObject jsonVal);
+void RedJsonObject_SetArray(RedJsonObject jsonObj, const char * szKey, RedJsonArray jsonArray);
+void RedJsonObject_SetBoolean(RedJsonObject jsonObj, const char * szKey, bool val);
 
-RedJsonValue RedJsonObject_Get(RedJsonObject jsonObj, char * szKey);
-RedJsonValueTypeEnum RedJsonObject_GetType(RedJsonObject jsonObj, char * szKey);
-char * RedJsonObject_GetString(RedJsonObject jsonObj, char * szKey);
-double RedJsonObject_GetNumber(RedJsonObject jsonObj, char * szKey);
-RedJsonObject RedJsonObject_GetObject(RedJsonObject jsonObj, char * szKey);
-RedJsonArray RedJsonObject_GetArray(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_GetBoolean(RedJsonObject jsonObj, char * szKey);
+RedJsonValue RedJsonObject_Get(RedJsonObject jsonObj, const char * szKey);
+RedJsonValueTypeEnum RedJsonObject_GetType(RedJsonObject jsonObj, const char * szKey);
+char * RedJsonObject_GetString(RedJsonObject jsonObj, const char * szKey);
+double RedJsonObject_GetNumber(RedJsonObject jsonObj, const char * szKey);
+RedJsonObject RedJsonObject_GetObject(RedJsonObject jsonObj, const char * szKey);
+RedJsonArray RedJsonObject_GetArray(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_GetBoolean(RedJsonObject jsonObj, const char * szKey);
 
-bool RedJsonObject_IsValueString(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_IsValueNumber(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_IsValueObject(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_IsValueArray(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_IsValueBoolean(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_IsValueNull(RedJsonObject jsonObj, char * szKey);
+bool RedJsonObject_IsValueString(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_IsValueNumber(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_IsValueObject(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_IsValueArray(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_IsValueBoolean(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_IsValueNull(RedJsonObject jsonObj, const char * szKey);
 
-void RedJsonObject_Unset(RedJsonObject jsonObj, char * szKey);
-bool RedJsonObject_HasKey(RedJsonObject jsonObj, char * szKey);
+void RedJsonObject_Unset(RedJsonObject jsonObj, const char * szKey);
+bool RedJsonObject_HasKey(RedJsonObject jsonObj, const char * szKey);
+
+unsigned RedJsonObject_NumItems(RedJsonObject jsonObj);
+char ** RedJsonObject_NewKeysArray(RedJsonObject jsonObj);
+void RedJsonObject_FreeKeysArray(char **keysArray);
 
 RedJsonArray RedJsonArray_New();
 
@@ -117,6 +121,7 @@ bool RedJsonArray_IsEntryBoolean(RedJsonArray jsonArray, unsigned idx);
 bool RedJsonArray_IsEntryNull(RedJsonArray jsonArray, unsigned idx);
 
 char * RedJsonValue_ToJsonString(RedJsonValue jsonVal);
+char * RedJsonObject_ToJsonString(RedJsonObject jsonObj);
 
 /* TODO: Error reporting */
 RedJsonObject RedJson_Parse(const char *text);

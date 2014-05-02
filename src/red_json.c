@@ -160,121 +160,154 @@ RedJsonObject RedJsonObject_New()
     return jsonObj;
 }
 
-void RedJsonObject_Set(RedJsonObject hObj, char * szKey, RedJsonValue hVal)
+void RedJsonObject_Set(RedJsonObject hObj, const char * szKey, RedJsonValue hVal)
 {
     hVal->refcnt++;
     RedHash_InsertS(hObj->hash, szKey, hVal);
 }
 
-void RedJsonObject_SetString(RedJsonObject hObj, char * szKey, char *szVal)
+void RedJsonObject_SetString(RedJsonObject hObj, const char * szKey, char *szVal)
 {
     RedJsonValue newVal = RedJsonValue_FromString(szVal);
     RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetNumber(RedJsonObject hObj, char * szKey, double val)
+void RedJsonObject_SetNumber(RedJsonObject hObj, const char * szKey, double val)
 {
     RedJsonValue newVal = RedJsonValue_FromNumber(val);
     RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetObject(RedJsonObject hObj, char * szKey, RedJsonObject hObjVal)
+void RedJsonObject_SetObject(RedJsonObject hObj, const char * szKey, RedJsonObject hObjVal)
 {
     RedJsonValue newVal = RedJsonValue_FromObject(hObjVal);
     RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetArray(RedJsonObject hObj, char * szKey, RedJsonArray hArray)
+void RedJsonObject_SetArray(RedJsonObject hObj, const char * szKey, RedJsonArray hArray)
 {
     RedJsonValue newVal = RedJsonValue_FromArray(hArray);
     RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetBoolean(RedJsonObject hObj, char * szKey, bool val)
+void RedJsonObject_SetBoolean(RedJsonObject hObj, const char * szKey, bool val)
 {
     RedJsonValue newVal = RedJsonValue_FromBoolean(hObj);
     RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-RedJsonValue RedJsonObject_Get(RedJsonObject hObj, char * szKey)
+RedJsonValue RedJsonObject_Get(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetWithDefaultS(hObj->hash, szKey, NULL);
     return jsonVal;
 }
 
-RedJsonValueTypeEnum RedJsonObject_GetType(RedJsonObject hObj, char * szKey)
+RedJsonValueTypeEnum RedJsonObject_GetType(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetWithDefaultS(hObj->hash, szKey, NULL);
     return jsonVal ? jsonVal->type : RED_JSON_VALUE_TYPE_INVALID;
 }
 
-char * RedJsonObject_GetString(RedJsonObject hObj, char * szKey)
+char * RedJsonObject_GetString(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetS(hObj->hash, szKey);
     return jsonVal->val.sz;
 }
-double RedJsonObject_GetNumber(RedJsonObject hObj, char * szKey)
+double RedJsonObject_GetNumber(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetS(hObj->hash, szKey);
     return jsonVal->val.dbl;
 }
-RedJsonObject RedJsonObject_GetObject(RedJsonObject hObj, char * szKey)
+RedJsonObject RedJsonObject_GetObject(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetS(hObj->hash, szKey);
     return jsonVal->val.hObj;
 }
-RedJsonArray RedJsonObject_GetArray(RedJsonObject hObj, char * szKey)
+RedJsonArray RedJsonObject_GetArray(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetS(hObj->hash, szKey);
     return jsonVal->val.hArray;
 }
-bool RedJsonObject_GetBoolean(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_GetBoolean(RedJsonObject hObj, const char * szKey)
 {
     RedJsonValue jsonVal;
     jsonVal = RedHash_GetS(hObj->hash, szKey);
     return jsonVal->val.boolean;
 }
 
-bool RedJsonObject_IsValueString(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_IsValueString(RedJsonObject hObj, const char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_STRING;
 }
-bool RedJsonObject_IsValueNumber(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_IsValueNumber(RedJsonObject hObj, const char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_NUMBER;
 }
-bool RedJsonObject_IsValueObject(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_IsValueObject(RedJsonObject hObj, const char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_OBJECT;
 }
-bool RedJsonObject_IsValueArray(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_IsValueArray(RedJsonObject hObj, const char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_ARRAY;
 }
-bool RedJsonObject_IsValueBoolean(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_IsValueBoolean(RedJsonObject hObj, const char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_BOOLEAN;
 }
-bool RedJsonObject_IsValueNull(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_IsValueNull(RedJsonObject hObj, const char * szKey)
 {
     return RedJsonObject_GetType(hObj, szKey) == RED_JSON_VALUE_TYPE_NULL;
 }
 
-void RedJsonObject_Unset(RedJsonObject hObj, char * szKey)
+void RedJsonObject_Unset(RedJsonObject hObj, const char * szKey)
 {
     // TODO
 }
-bool RedJsonObject_HasKey(RedJsonObject hObj, char * szKey)
+bool RedJsonObject_HasKey(RedJsonObject hObj, const char * szKey)
 {
     return RedHash_HasKeyS(hObj->hash, szKey);
 }
 
+unsigned RedJsonObject_NumItems(RedJsonObject jsonObj)
+{
+    return RedHash_NumItems(jsonObj->hash);
+}
+
+char ** RedJsonObject_NewKeysArray(RedJsonObject jsonObj)
+{
+    char **out;
+    RedHashIterator_t iter;
+    const char *key;
+    size_t keySize;
+    const void *value;
+    unsigned numKeys;
+    unsigned i=0;
+    
+    numKeys = RedJsonObject_NumItems(jsonObj);
+
+    out = malloc(numKeys*sizeof(char *));
+
+    RED_HASH_FOREACH(iter, jsonObj->hash, (const void **)&key, &keySize, &value)
+    {
+        out[i] = malloc(keySize);
+        strncpy(out[i], key, keySize);
+        i++;
+    }
+    return out;
+}
+
+void RedJsonObject_FreeKeysArray(char **keysArray)
+{
+    /* TODO: Free each key */
+    free(keysArray);
+}
 RedJsonArray RedJsonArray_New()
 {
     RedJsonArray hNew;
@@ -468,6 +501,13 @@ char * RedJsonValue_ToJsonString(RedJsonValue hVal)
     return out;
 }
 
+char * RedJsonObject_ToJsonString(RedJsonObject jsonObj)
+{
+    char *out;
+    RedJsonValue val = RedJsonValue_FromObject(jsonObj);
+    out = RedJsonValue_ToJsonString(val);
+    return out;
+}
 
 typedef enum _JsonTokenEnum
 {
@@ -729,39 +769,32 @@ RedJsonObject RedJson_Parse(const char *text)
         switch (text[0])
         {
             case '{':
-                printf("{ emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_OPEN_CURLY_BRACE);
                 text++;
                 break;
             case '}':
-                printf("} emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_CLOSE_CURLY_BRACE);
                 text++;
                 break;
             case '[':
-                printf("[ emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_OPEN_SQUARE_BRACE);
                 text++;
                 break;
             case ']':
-                printf("] emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_CLOSE_SQUARE_BRACE);
                 text++;
                 break;
             case ',':
-                printf(", emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_COMMA);
                 text++;
                 break;
             case ':':
-                printf(": emitted\n");
                 tail = _EmitSimpleToken(tail, _JSON_TOKEN_COLON);
                 text++;
                 break;
             case 't':
                 if (!strncmp(text, "true", 4))
                 {
-                    printf("true emitted\n");
                     tail = _EmitBoolToken(tail, true);
                     text = &text[4];
                 }
@@ -773,7 +806,6 @@ RedJsonObject RedJson_Parse(const char *text)
             case 'f':
                 if (!strncmp(text, "false", 5))
                 {
-                    printf("false emitted\n");
                     tail = _EmitBoolToken(tail, false);
                     text = &text[5];
                 }
@@ -785,7 +817,6 @@ RedJsonObject RedJson_Parse(const char *text)
             case 'n':
                 if (!strncmp(text, "null", 4))
                 {
-                    printf("null emitted\n");
                     tail = _EmitSimpleToken(tail, _JSON_TOKEN_NULL);
                     text = &text[4];
                 }
@@ -803,7 +834,6 @@ RedJsonObject RedJson_Parse(const char *text)
                 {
                     text++;
                 }
-                printf("string emitted\n");
                 tail = _EmitStringToken(tail, stringStart, text - stringStart);
 
                 /* TODO: handle end-of-input */
