@@ -21,6 +21,10 @@ run run_debug: debug
 
 run_release: release
 	LD_LIBRARY_PATH=../.. ./test_bloom
+
+dbg: debug
+	LD_LIBRARY_PATH=../.. gdb ./test_bloom
+
 clean:
 	rm test_bloom
 
