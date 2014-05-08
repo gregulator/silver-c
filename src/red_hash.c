@@ -284,6 +284,7 @@ static void _RedHashIterator_Advance(RedHashIterator_t *pIter)
     if (node->next)
     {
         pIter->_node = node->next;
+        return;
     }
 
     pIter->_bucket++;
