@@ -577,7 +577,7 @@ static _JsonToken * _EmitBoolToken(_JsonToken *parent, bool value)
     return token;
 }
 
-/*static _JsonToken * _EmitNumberToken(_JsonToken *parent, double value)
+static _JsonToken * _EmitNumberToken(_JsonToken *parent, double value)
 {
     _JsonToken *token = calloc(1, sizeof(_JsonToken));
     if (token)
@@ -588,7 +588,7 @@ static _JsonToken * _EmitBoolToken(_JsonToken *parent, bool value)
             parent->next = token;
     }
     return token;
-}*/
+}
 
 static _JsonToken * _EmitStringToken(_JsonToken *parent, const char *stringStart, size_t stringLength)
 {
@@ -844,7 +844,11 @@ RedJsonObject RedJson_Parse(const char *text)
             {
                 if ((text[0] >= '0' && text[0] <= '9') || text[0] == '-')
                 {
-                    // TODO: consume number
+                    double val;
+                    val = strtod(&text[0], (char **)&text);
+                    tail = _EmitNumberToken(tail, val);
+                    // TODO: handle exponentials
+
                 }
                 else if (isspace(text[0]))
                 {
