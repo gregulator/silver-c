@@ -450,13 +450,25 @@ void _Value_ToJson(RedStringList chain, RedJsonValue hVal)
             const char *key;
             size_t keySize;
             const void *value;
+            int numItems;
+            int i;
             RedStringList_AppendPrintf(chain, "{\n");
+            numItems = RedHash_NumItems(hVal->val.hObj->hash);
+            i = 0;
             RED_HASH_FOREACH(iter, hVal->val.hObj->hash, (const void **)&key, &keySize, &value)
             {
                 RedJsonValue val = (RedJsonValue)value;
                 RedStringList_AppendPrintf(chain, "\"%s\" : ", key);
                 _Value_ToJson(chain, val);
-                RedStringList_AppendPrintf(chain, ",\n");
+                if (i < numItems - 1)
+                {
+                    RedStringList_AppendPrintf(chain, ",\n");
+                }
+                else
+                {
+                    RedStringList_AppendPrintf(chain, "\n");
+                }
+                i++;
             }
             RedStringList_AppendPrintf(chain, "}\n");
             break;
