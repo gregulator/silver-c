@@ -317,10 +317,9 @@ RedJsonArray RedJsonArray_New()
     return hNew;
 }
 
-RedJsonArray RedJsonArray_NumItems(RedJsonArray hArray)
+unsigned RedJsonArray_NumItems(RedJsonArray hArray)
 {
-    /*return ZARRAY_NUM_ITEMS(hArray->items);*/
-    return NULL;
+    return ZARRAY_NUM_ITEMS(hArray->items);
 }
 
 void RedJsonArray_Append(RedJsonArray hArray, RedJsonValue hVal)

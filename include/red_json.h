@@ -88,7 +88,7 @@ void RedJsonObject_FreeKeysArray(char **keysArray);
 
 RedJsonArray RedJsonArray_New();
 
-RedJsonArray RedJsonArray_NumItems(RedJsonArray jsonArray);
+unsigned RedJsonArray_NumItems(RedJsonArray hArray);
 
 void RedJsonArray_Append(RedJsonArray jsonArray, RedJsonValue val);
 void RedJsonArray_AppendString(RedJsonArray jsonArray, char * val);

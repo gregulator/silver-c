@@ -52,16 +52,16 @@ void RedLog_LogCommon(const char *file, int line, const char *logName, RedLogLev
 #define RedLog_DebugLog(loggerName, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_DEBUG, __VA_ARGS__)
 
-#define RedLog_InfoLog(...)  \
+#define RedLog_InfoLog(loggerName, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_INFO, __VA_ARGS__)
 
-#define RedLog_WarnLog(...)  \
+#define RedLog_WarnLog(loggerName, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_WARN, __VA_ARGS__)
 
-#define RedLog_ErrorLog(...)  \
+#define RedLog_ErrorLog(loggerName, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_ERROR, __VA_ARGS__)
 
-#define RedLog_FatalLog(...)  \
+#define RedLog_FatalLog(loggerName, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_FATAL, __VA_ARGS__)
 
 #define RedLog_Debug(...)  \

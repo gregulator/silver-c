@@ -162,6 +162,28 @@ int RedString_Compare(
     return strcmp(hRedStringA->data, hRedStringB->data);
 }
 
+bool RedString_Equals(
+    RedString hRedString,
+    const char * otherString)
+{
+    return 
+        !RedString_CompareChars(
+            RedString_GetChars(hRedString),
+            otherString,
+            0);
+}
+
+char *RedString_strdup(const char *src)
+{
+    size_t len = strlen(src);
+    char *out = malloc(len*sizeof(char) + 1);
+    if (!out)
+        return NULL;
+    strcpy(out, src);
+    out[len] = 0;
+    return out;
+}
+
 int RedString_CompareChars(
         const char * strA, 
         const char * strB,
@@ -186,7 +208,7 @@ bool RedString_ContainsChars(ConstRedString hHaystack, const char *needle)
     return false;
 }
 
-bool RedString_StartsWith(ConstRedString hRedString, const char *needle)
+bool RedString_BeginsWith(ConstRedString hRedString, const char *needle)
 {
     if (!memcmp(hRedString->data, needle, strlen(needle)))
     {

@@ -111,7 +111,7 @@ enum
     STRING_COMPARE_IGNORE_CASE_FLAG = 0x1,
 
     /* Ignore whitespace differences when doing comparison. */
-    STRING_COMPARE_IGNORE_WHITESPACE_FLAG = 0x2,
+    STRING_COMPARE_IGNORE_WHITESPACE_FLAG = 0x2
 };
 
 /* 
@@ -125,6 +125,12 @@ int RedString_Compare(
         const RedString hRedStringA, 
         const RedString hRedStringB,
         unsigned stringComparisonFlags);
+
+bool RedString_Equals(
+    RedString hRedString,
+    const char * otherString);
+
+char *RedString_strdup(const char *src);
 
 /*
  * RedStringCompareChars - Same as RedStringCompare but with (char *)s.
@@ -144,7 +150,7 @@ bool RedString_ContainsChars(ConstRedString hHaystack, const char *needle);
  * RedString_BeginsWith -- Returns True if <hRedString> begins with the characters of
  *      <needle>.
  */
-bool RedString_StartsWith(ConstRedString hRedString, const char *needle);
+bool RedString_BeginsWith(ConstRedString hRedString, const char *needle);
 
 /* RedString_Search -- Returns position of first occurance of <c> in <hHaystack>,
  *      or -1 if it is not found.
@@ -209,7 +215,7 @@ void RedString_Reverse(RedString hRedString);
 typedef enum
 {
     STRING_CASE_UPPER,
-    STRING_CASE_LOWER,
+    STRING_CASE_LOWER
 } RedStringCase; 
 
 /* 
@@ -321,7 +327,7 @@ void RedStringList_Free(RedStringList list);
 typedef enum
 {
     STRING_REPLACE_IGNORE_CASE_FLAG,
-    STRING_REPLACE_ALL,
+    STRING_REPLACE_ALL
 } RedStringReplaceFlags;
 
 /*
@@ -353,4 +359,4 @@ typedef enum
         const RedString hSeparator,
         )*/
 
-#endif // STRINGS_INCLUDED
+#endif
