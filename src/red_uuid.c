@@ -33,7 +33,6 @@ RedUUID_t RedUUID_GenV4()
     if (!_uuid_initialized)
     {
         struct timeval t1;
-        usleep(100);
         gettimeofday(&t1, NULL);
         srand(t1.tv_usec + 1000000 * t1.tv_sec);
         _uuid_initialized = true;
