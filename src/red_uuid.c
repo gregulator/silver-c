@@ -141,20 +141,3 @@ char *RedUUID_ToNewString(RedUUID_t uuid)
     out[8] = out[13] = out[18] = out[23] = '-';
     return out;
 }
-
-int main(void)
-{
-    RedUUID_t uuid;
-    RedUUID_t uuid2;
-    bool result;
-    uuid = RedUUID_GenV4();
-    printf("%s\n", RedUUID_ToNewString(uuid));
-    result = RedUUID_FromChars(&uuid2, RedUUID_ToNewString(uuid));
-    if (!result)
-    {
-        printf("failure!\n");
-    }
-    
-    printf("%s\n", RedUUID_ToNewString(uuid2));
-    return 0;
-}
