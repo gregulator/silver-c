@@ -4,12 +4,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define _NUM_LOG_LEVELS 5
+#define _NUM_LOG_LEVELS 6
 
 typedef struct _Logger_t
 {
     bool levelEnabled[_NUM_LOG_LEVELS];
     RedLogCallbackFunc callback[_NUM_LOG_LEVELS];
+    void * userData; /* extra user-assigned data passed to callbacks */
 } _Logger_t;
 
 typedef struct _LogSystem_t
@@ -40,11 +41,8 @@ static _Logger_t * _CreateOrGetLogger(const char *loggerName)
                 logger->levelEnabled[i] = true;
                 logger->callback[i] = RedLog_WriteToStderrRoutine;
             }
+            RedHash_InsertS(sRedLogSys.loggers, loggerName, logger);
         }
-    }
-    if (logger)
-    {
-        RedHash_InsertS(sRedLogSys.loggers, loggerName, logger);
     }
     return logger;
 }
@@ -60,10 +58,12 @@ static void _InitializeIfNeeded()
     }
 }
 
-static const char * _LogLevelString(RedLogLevel level)
+const char * RedLog_LogLevelString(RedLogLevel level)
 {
     switch (level)
     {
+        case RED_LOG_LEVEL_TRACE:
+            return "TRACE";
         case RED_LOG_LEVEL_DEBUG:
             return "DEBUG";
         case RED_LOG_LEVEL_INFO:
@@ -75,14 +75,14 @@ static const char * _LogLevelString(RedLogLevel level)
         case RED_LOG_LEVEL_FATAL:
             return "FATAL ERROR";
         default:
-            return 0;
+            return NULL;
     }
 }
 
 
-static void _WriteToStderrRoutine(const char *file, int line, const char *loggerName, RedLogLevel level, const char *msg)
+static void _WriteToStderrRoutine(const char *file, int line, const char *loggerName, RedLogLevel level, const char *msg, void *userData)
 {
-    fprintf(stderr, "%s:%d [%s %s] %s\n", file, line, loggerName, _LogLevelString(level), msg);
+    fprintf(stderr, "%s:%d [%s %s] %s\n", file, line, loggerName, RedLog_LogLevelString(level), msg);
 }
 
 RedLogCallbackFunc RedLog_WriteToStderrRoutine = _WriteToStderrRoutine;
@@ -91,16 +91,18 @@ static int _LogLevelIdx(RedLogLevel level)
 {
     switch (level)
     {
-        case RED_LOG_LEVEL_DEBUG:
+        case RED_LOG_LEVEL_TRACE:
             return 0;
-        case RED_LOG_LEVEL_INFO:
+        case RED_LOG_LEVEL_DEBUG:
             return 1;
-        case RED_LOG_LEVEL_WARN:
+        case RED_LOG_LEVEL_INFO:
             return 2;
-        case RED_LOG_LEVEL_ERROR:
+        case RED_LOG_LEVEL_WARN:
             return 3;
-        case RED_LOG_LEVEL_FATAL:
+        case RED_LOG_LEVEL_ERROR:
             return 4;
+        case RED_LOG_LEVEL_FATAL:
+            return 5;
         default:
             return 0;
     }
@@ -109,6 +111,7 @@ static int _LogLevelIdx(RedLogLevel level)
 
 void RedLog_SetLogLevelsEnabled(const char *loggerName, RedLogLevels levels)
 {
+    _InitializeIfNeeded();
     int i;
     _Logger_t *logger;
     logger = _CreateOrGetLogger(loggerName);
@@ -118,12 +121,20 @@ void RedLog_SetLogLevelsEnabled(const char *loggerName, RedLogLevels levels)
     }
 }
 
+void RedLog_SetLogCallbackUserData(const char *loggerName, void *userData)
+{
+    _InitializeIfNeeded();
+    _Logger_t *logger;
+    logger = _CreateOrGetLogger(loggerName);
+    logger->userData = userData;
+}
+
 void RedLog_SetLogCallback(const char *loggerName, RedLogLevels levels, RedLogCallbackFunc handler)
 {
     int i;
     _Logger_t *logger;
     logger = _CreateOrGetLogger(loggerName);
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < _NUM_LOG_LEVELS; i++)
     {
         if (levels & (1 << i))
         {
@@ -165,6 +176,6 @@ void RedLog_Logv(const char *file, int line, const char *logName, RedLogLevel le
         n = vsnprintf(NULL, 0, fmt, ap);
         msg = (char *)calloc(n+1, sizeof(char));
         vsnprintf(msg, n+1, fmt, ap2);
-        logger->callback[levelIdx](file, line, logName, level, msg);
+        logger->callback[levelIdx](file, line, logName, level, msg, logger->userData);
     }
 }

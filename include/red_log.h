@@ -24,23 +24,25 @@
 
 typedef enum
 {
-    RED_LOG_LEVEL_DEBUG = 0x1,
-    RED_LOG_LEVEL_INFO = 0x2,
-    RED_LOG_LEVEL_WARN = 0x4,
-    RED_LOG_LEVEL_ERROR = 0x8,
-    RED_LOG_LEVEL_FATAL = 0x10
+    RED_LOG_LEVEL_TRACE = 0x1,
+    RED_LOG_LEVEL_DEBUG = 0x2,
+    RED_LOG_LEVEL_INFO = 0x4,
+    RED_LOG_LEVEL_WARN = 0x8,
+    RED_LOG_LEVEL_ERROR = 0x10,
+    RED_LOG_LEVEL_FATAL = 0x20
 } RedLogLevel;
 
-#define RED_LOG_LEVEL_ERROR_AND_HIGHER 0x18
-#define RED_LOG_LEVEL_WARN_AND_HIGHER 0x1C
-#define RED_LOG_LEVEL_INFO_AND_HIGHER 0x1E
-#define RED_LOG_LEVEL_ALL 0x1F
+#define RED_LOG_LEVEL_ERROR_AND_HIGHER 0x30
+#define RED_LOG_LEVEL_WARN_AND_HIGHER 0x38
+#define RED_LOG_LEVEL_INFO_AND_HIGHER 0x3C
+#define RED_LOG_LEVEL_DEBUG_AND_HIGHER 0x3E
+#define RED_LOG_LEVEL_ALL 0x3F
 
 #define RED_LOG_DEFAULT_LOG "__default__"
 
 typedef int RedLogLevels;
 
-typedef void (*RedLogCallbackFunc)(const char *file, int line, const char *loggerName, RedLogLevel level, const char *msg);
+typedef void (*RedLogCallbackFunc)(const char *file, int line, const char *loggerName, RedLogLevel level, const char *msg, void *userData);
 
 void RedLog_Logv(const char *file, int line, const char *logName, RedLogLevel level, const char *fmt, va_list ap);
 
@@ -48,6 +50,9 @@ void RedLog_LogCommon(const char *file, int line, const char *logName, RedLogLev
 
 #define RedLog_Log(loggerName, level, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, level, __VA_ARGS__)
+
+#define RedLog_TraceLog(loggerName, ...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_TRACE, __VA_ARGS__)
 
 #define RedLog_DebugLog(loggerName, ...)  \
     RedLog_LogCommon(__FILE__, __LINE__, loggerName, RED_LOG_LEVEL_DEBUG, __VA_ARGS__)
@@ -81,7 +86,9 @@ void RedLog_LogCommon(const char *file, int line, const char *logName, RedLogLev
 
 void RedLog_SetLogCallback(const char *loggerName, RedLogLevels levels, RedLogCallbackFunc handler);
 void RedLog_SetLogLevelsEnabled(const char *loggerName, RedLogLevels levels);
+void RedLog_SetLogCallbackUserData(const char *loggerName, void *userData);
 
 extern RedLogCallbackFunc RedLog_WriteToStderrRoutine;
 
+const char * RedLog_LogLevelString(RedLogLevel level);
 #endif

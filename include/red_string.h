@@ -66,6 +66,12 @@ RedString RedString_NewLength(const char *src, unsigned length);
 RedString RedString_NewPrintf(const char *fmt, unsigned size, ...);
 
 /*
+ * RedString_PrintfToNewChars -- Performs an sprintf and returns the result as
+ * a newly allocated null-terminated char array.
+ */
+char *RedString_PrintfToNewChars(const char *fmt, ...);
+
+/*
  * RedString_Free -- Frees a string's memory.
  */
 void RedString_Free(RedString s);
@@ -305,6 +311,8 @@ unsigned RedStringList_NumStrings(RedStringList hList);
  *      are finished with it.
  */
 RedString RedStringList_GetString(RedStringList hList, unsigned idx);
+
+const char * RedStringList_GetStringChars(RedStringList hList, unsigned idx);
 
 void RedStringList_Join(RedString hString, RedStringList hList, const char *joiner);
 

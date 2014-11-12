@@ -166,6 +166,12 @@ void RedJsonObject_Set(RedJsonObject hObj, const char * szKey, RedJsonValue hVal
     RedHash_InsertS(hObj->hash, szKey, hVal);
 }
 
+void RedJsonObject_SetNull(RedJsonObject hObj, const char * szKey)
+{
+    RedJsonValue newVal = RedJsonValue_Null();
+    RedHash_InsertS(hObj->hash, szKey, newVal);
+}
+
 void RedJsonObject_SetString(RedJsonObject hObj, const char * szKey, char *szVal)
 {
     RedJsonValue newVal = RedJsonValue_FromString(szVal);
@@ -847,10 +853,35 @@ RedJsonObject RedJson_Parse(const char *text)
                 }
                 tail = _EmitStringToken(tail, stringStart, text - stringStart);
 
+                if (!*text) {
+                    /* unterminated parentheses */
+                    goto fail;
+                }
+
                 /* TODO: handle end-of-input */
                 text++;
                 break;
             }
+            case '/':
+            {
+                if (text[1] == '*')
+                {
+                    text++;
+                    // consume comment
+                    while (text[0] && text[1] && (text[0] != '*' || text[1] != '/'))
+                    {
+                        text++;
+                    }
+
+                    text += 2;
+                }
+                else
+                {
+                    goto fail;
+                }
+                break;
+            }
+
             default:
             {
                 if ((text[0] >= '0' && text[0] <= '9') || text[0] == '-')
@@ -864,6 +895,10 @@ RedJsonObject RedJson_Parse(const char *text)
                 else if (isspace(text[0]))
                 {
                     text++;
+                }
+                else
+                {
+                    goto fail;
                 }
                 break;
             }

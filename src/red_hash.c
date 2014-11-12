@@ -97,7 +97,7 @@ static void _RedHash_AutoResize(RedHash hash)
         return;
 
     /* Increase the number of buckets */
-    memcpy(&oldHash, hash, sizeof(RedHash));
+    memcpy(&oldHash, hash, sizeof(RedHash_t));
     hash->sizeLevel++;
     hash->numBuckets = _RedHashValidBucketCounts[hash->sizeLevel];
 
@@ -272,6 +272,15 @@ unsigned RedHash_NumItems(const RedHash hash)
     return hash->numEntries;
 }
 
+void RedHash_Clear(RedHash hash)
+{
+    hash->numEntries = 0;
+    hash->numBuckets = _RedHashValidBucketCounts[0];
+    // TODO: major mem leak!
+    hash->buckets = calloc(hash->numBuckets, sizeof(RedHashNodeHeader *));
+}
+
+
 bool RedHash_IsEmpty(const RedHash hash)
 {
     return (hash->numEntries == 0);
@@ -324,9 +333,12 @@ bool RedHashIterator_Advance(RedHashIterator_t *pIter, const void **ppOutKey, si
     {
         return false;
     }
-    *ppOutKey = &node->keyStart;
-    *pOutKeySize = node->keySize;
-    *ppOutValue = node->value;
+    if (ppOutKey)
+        *ppOutKey = &node->keyStart;
+    if (pOutKeySize)
+        *pOutKeySize = node->keySize;
+    if (ppOutValue)
+        *ppOutValue = node->value;
 
     _RedHashIterator_Advance(pIter);
     return true;
