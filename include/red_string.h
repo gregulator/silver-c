@@ -297,6 +297,12 @@ void RedString_Rot13(RedString hResult, RedString hOriginal);
 RedStringList RedString_Split(RedString hRedString, char delimiter);
 
 /*
+ * RedString_SplitChars -- Same as RedString_Split but takes a (char *) instead
+ * of RedString.
+ */
+RedStringList RedString_SplitChars(const char *string, char delimiter);
+
+/*
  * RedStringList_NumRedStrings -- Returns the number of strings in <hList>.
  */
 unsigned RedStringList_NumStrings(RedStringList hList);

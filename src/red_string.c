@@ -473,6 +473,15 @@ RedStringList RedString_Split(RedString hRedString, char delimiter)
     return hNew;
 }
 
+RedStringList RedString_SplitChars(const char *chars, char delimiter)
+{
+    RedString s = RedString_New(chars);
+    RedStringList out;
+    out = RedString_Split(s, delimiter);
+    RedString_Free(s);
+    return out;
+}
+
 unsigned RedStringList_NumStrings(RedStringList hList)
 {
     return ZARRAY_NUM_ITEMS(hList->array);

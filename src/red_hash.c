@@ -240,7 +240,9 @@ bool
         {
             oldValue = pNode->value;
             pNode->value = value;
-            *replacedValue = oldValue;
+            if (replacedValue) {
+                *replacedValue = oldValue;
+            }
             return true;
         }
         pNode = pNode->next;
