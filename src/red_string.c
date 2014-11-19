@@ -511,6 +511,15 @@ void RedStringList_Join(RedString hString, RedStringList hList, const char *join
     }
 }
 
+char * RedStringList_JoinToNewChars(RedStringList list, const char *joiner)
+{
+    RedString joined = RedString_New(NULL);
+    char *out;
+    RedStringList_Join(joined, list, joiner);
+    out = RedString_ToNewChars(joined);
+    RedString_Free(joined);
+    return out;
+}
 
 RedStringList RedStringList_New()
 {

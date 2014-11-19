@@ -44,7 +44,7 @@ typedef struct RedJsonArray_t
     ZARRAY(RedJsonValue) items;
 } RedJsonArray_t;
 
-RedJsonValue RedJsonValue_FromString(char * sz)
+RedJsonValue RedJsonValue_FromString(const char * sz)
 {
     RedJsonValue hNew;
     hNew = malloc(sizeof(RedJsonValue_t));
@@ -172,7 +172,7 @@ void RedJsonObject_SetNull(RedJsonObject hObj, const char * szKey)
     RedHash_InsertS(hObj->hash, szKey, newVal);
 }
 
-void RedJsonObject_SetString(RedJsonObject hObj, const char * szKey, char *szVal)
+void RedJsonObject_SetString(RedJsonObject hObj, const char * szKey, const char *szVal)
 {
     RedJsonValue newVal = RedJsonValue_FromString(szVal);
     RedHash_InsertS(hObj->hash, szKey, newVal);

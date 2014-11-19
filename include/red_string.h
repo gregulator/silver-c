@@ -330,6 +330,8 @@ RedStringList RedStringList_New();
 
 char * RedStringList_ToNewChars(RedStringList list);
 
+char * RedStringList_JoinToNewChars(RedStringList list, const char *joiner);
+
 /*
  * RedStringList_Free -- Frees all strings contained in <*phList> and all other
  *      resources associated with the list.  After calling RedStringList_Free you

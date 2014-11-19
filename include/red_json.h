@@ -37,7 +37,7 @@ typedef struct RedJsonArray_t * RedJsonArray;
 
 typedef struct RedJsonValue_t * RedJsonValue;
 
-RedJsonValue RedJsonValue_FromString(char * sz); /* String is copied */
+RedJsonValue RedJsonValue_FromString(const char * sz); /* String is copied */
 RedJsonValue RedJsonValue_FromNumber(double val);
 RedJsonValue RedJsonValue_FromObject(RedJsonObject jsonObj);
 RedJsonValue RedJsonValue_FromArray(RedJsonArray jsonArray);
@@ -59,7 +59,7 @@ RedJsonObject RedJsonObject_New();
 
 void RedJsonObject_Set(RedJsonObject jsonObj, const char * szKey, RedJsonValue jsonVal);
 void RedJsonObject_SetNull(RedJsonObject jsonObj, const char * szKey);
-void RedJsonObject_SetString(RedJsonObject jsonObj, const char * szKey, char *szVal);
+void RedJsonObject_SetString(RedJsonObject jsonObj, const char * szKey, const char *szVal);
 void RedJsonObject_SetNumber(RedJsonObject jsonObj, const char * szKey, double val);
 void RedJsonObject_SetObject(RedJsonObject jsonObj, const char * szKey, RedJsonObject jsonVal);
 void RedJsonObject_SetArray(RedJsonObject jsonObj, const char * szKey, RedJsonArray jsonArray);
