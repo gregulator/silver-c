@@ -151,6 +151,10 @@ bool RedJsonValue_IsArray(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_ARRAY;
 }
+bool RedJsonValue_IsBoolean(RedJsonValue hVal)
+{
+    return hVal->type == RED_JSON_VALUE_TYPE_BOOLEAN;
+}
 bool RedJsonValue_IsNull(RedJsonValue hVal)
 {
     return hVal->type == RED_JSON_VALUE_TYPE_NULL;
