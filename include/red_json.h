@@ -48,11 +48,13 @@ char * RedJsonValue_GetString(RedJsonValue jsonVal); /* String is copied */
 double RedJsonValue_GetNumber(RedJsonValue jsonVal);
 RedJsonObject RedJsonValue_GetObject(RedJsonValue jsonVal);
 RedJsonArray RedJsonValue_GetArray(RedJsonValue jsonVal);
+bool RedJsonValue_GetBoolean(RedJsonValue jsonVal);
 
 bool RedJsonValue_IsString(RedJsonValue jsonVal);
 bool RedJsonValue_IsNumber(RedJsonValue jsonVal);
 bool RedJsonValue_IsObject(RedJsonValue jsonVal);
 bool RedJsonValue_IsArray(RedJsonValue jsonVal);
+bool RedJsonValue_IsBoolean(RedJsonValue jsonVal);
 bool RedJsonValue_IsNull(RedJsonValue jsonVal);
 
 RedJsonObject RedJsonObject_New();

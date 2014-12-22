@@ -129,6 +129,11 @@ RedJsonArray RedJsonValue_GetArray(RedJsonValue hVal)
     assert(hVal->type == RED_JSON_VALUE_TYPE_ARRAY);
     return REF(hVal->val.hArray);
 }
+bool RedJsonValue_GetBoolean(RedJsonValue hVal)
+{
+    assert(hVal->type == RED_JSON_VALUE_TYPE_BOOLEAN);
+    return hVal->val.boolean;
+}
 
 bool RedJsonValue_IsString(RedJsonValue hVal)
 {
