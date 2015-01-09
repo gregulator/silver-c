@@ -108,6 +108,13 @@ const char * RedTest_GetName(RedTest suite)
     return suite->testName;
 }
 
+int RedTest_Abort(RedTest suite, const char *reason)
+{
+    char msg[1024];
+    snprintf(msg, 1024, "Test Aborted.  Reason: %s", reason);
+    RedTest_Verify(suite, msg, false);
+    return RedTest_End(suite);
+}
 
 int RedTest_End(RedTest suite)
 {

@@ -216,6 +216,26 @@ unsigned RedTest_NumFailed(RedTest suite);
 unsigned RedTest_NumTotal(RedTest suite);
 
 /*
+ * RedTest_Abort -- Call when the test cannot be completed due to an error.
+ *      
+ *      This will report a final summary and destroy the test suite object.
+ *      The test will be considered to have failed.
+ *
+ *      This routine triggers the "fnOnEnd" callback (which was provided
+ *      to RedTest_Begin) to report and log the final summary.  If
+ *      "fnOnTestResult" is NULL, the default reporting routine is used which
+ *      prints a one-line final summary to stderr.
+ *
+ *      This routine frees all resources used by <suite>.  DO NOT continue to
+ *      use <suite> after calling this routine, or...crashy crash crash!
+ *
+ *      <suite> is the test suite object from RedTest_Begin.
+ *
+ *      Returns a nonzero value.
+ */
+int RedTest_Abort(RedTest suite, const char *reason);
+
+/*
  * RedTest_End -- Call when all subtests have completed.  This will report a
  *      final summary and destroy the test suite object.
  *
@@ -228,6 +248,8 @@ unsigned RedTest_NumTotal(RedTest suite);
  *      use <suite> after calling this routine, or...crashy crash crash!
  *
  *      <suite> is the test suite object from RedTest_Begin.
+ *
+ *      Returns 0 if all tests passed, a nonzero value otherwise.
  */
 int RedTest_End(RedTest suite);
 
