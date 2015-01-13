@@ -9,6 +9,10 @@
  * Zlists are awesome.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 #define ZLIST(typ) \
@@ -73,5 +77,9 @@
 
 #define ZLIST_NEXT_EX(node, linkname) \
         ((node)->linkname.next)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

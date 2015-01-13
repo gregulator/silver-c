@@ -18,6 +18,10 @@
 #ifndef ZHASH_INCLUDED
 #define ZHASH_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -164,5 +168,9 @@
     static inline bool name##_is_empty(name ht) { \
         return (ht->numItems == 0); \
     }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

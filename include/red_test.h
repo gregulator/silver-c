@@ -90,6 +90,10 @@
 #ifndef RED_TEST_INCLUDED
 #define RED_TEST_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 
 /*
@@ -252,5 +256,9 @@ int RedTest_Abort(RedTest suite, const char *reason);
  *      Returns 0 if all tests passed, a nonzero value otherwise.
  */
 int RedTest_End(RedTest suite);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

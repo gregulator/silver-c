@@ -18,6 +18,10 @@
 #ifndef RED_UUID
 #define RED_UUID
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -48,4 +52,9 @@ bool RedUUID_IsV4(RedUUID_t uuid);
  * Convert UUID to human-readable string.  Caller must free returned string.
  */
 char *RedUUID_ToNewString(RedUUID_t uuid);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

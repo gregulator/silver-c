@@ -9,6 +9,10 @@
 #ifndef STRINGS_INCLUDED
 #define STRINGS_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 
 /*
@@ -374,5 +378,9 @@ typedef enum
         RedString
         const RedString hSeparator,
         )*/
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

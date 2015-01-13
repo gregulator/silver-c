@@ -1,6 +1,10 @@
 #ifndef ZTEST_INCLUDED
 #define ZTEST_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -63,5 +67,9 @@ static int ZTEST_END(ZTest ztest)
 
     return passed ? 0 : 1;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

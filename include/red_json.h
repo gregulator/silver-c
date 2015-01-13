@@ -18,6 +18,10 @@
 #ifndef RED_JSON_INCLUDED
 #define RED_JSON_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 
 typedef enum
@@ -128,5 +132,9 @@ char * RedJsonObject_ToJsonString(RedJsonObject jsonObj);
 
 /* TODO: Error reporting */
 RedJsonObject RedJson_Parse(const char *text);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -18,6 +18,10 @@
 #ifndef ZARRAY_INCLUDED
 #define ZARRAY_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 /**
@@ -396,5 +400,9 @@ static unsigned _ZArray_NumItemsGeneric(void * zarray)
 
 #define ZARRAY_AT(zarray, idx) \
     ((zarray)->item[_ZARRAY_AT_INDEX(zarray, idx)])
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

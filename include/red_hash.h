@@ -66,6 +66,10 @@
 #ifndef RED_HASH_INCLUDED
 #define RED_HASH_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -410,5 +414,9 @@ bool RedHashIterator_Advance(RedHashIterator_t *pIter, const void **ppOutKey, si
 
 #define RED_HASH_FOREACH(iter, hash, ppOutKey, pOutKeySize, ppOutValue) \
     for (RedHashIterator_Init(&(iter), (hash)); RedHashIterator_Advance(&(iter), (ppOutKey), (pOutKeySize), (ppOutValue)); )
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

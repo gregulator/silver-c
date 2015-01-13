@@ -18,6 +18,10 @@
 #ifndef RED_BLOOM_INCLUDED
 #define RED_BLOOM_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -151,5 +155,9 @@ bool RedBloom_MayContainS(RedBloom bloom, const char *szItem);
  *      to manually merge bloom tables by ORing the raw data).
  */
 /*void RedBloom_WriteDataBytes(RedBloom bloom, uint8_t *out); */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

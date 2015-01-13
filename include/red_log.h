@@ -19,6 +19,10 @@
 #ifndef RED_LOG_INCLUDED
 #define RED_LOG_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 /* TODO: filename and line numbers */
 
@@ -91,4 +95,9 @@ void RedLog_SetLogCallbackUserData(const char *loggerName, void *userData);
 extern RedLogCallbackFunc RedLog_WriteToStderrRoutine;
 
 const char * RedLog_LogLevelString(RedLogLevel level);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

@@ -10,6 +10,10 @@
 #ifndef RED_SET_INCLUDED
 #define RED_SET_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct RedSet_t * RedSet;
 
 /* TODO: move to internal header */
@@ -307,5 +311,9 @@ bool RedSetIterator_Advance(RedSetIterator_t *pIter, const void **ppOutItem, siz
  */
 #define RED_SET_FOREACH(iter, set, ppItem, pItemSize) \
     for (RedSetIter_Init(&(iter), (set)); RedSetIter_Advance(&(iter), (ppItem), (pItemSize)))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
